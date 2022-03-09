@@ -2,11 +2,22 @@
   "name": "jtex",
   "version": "1.0.0",
   "description": "",
-  "main": "test.js",
+  "main": "parser.js",
+  "directories": {
+    "test": "tests"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test1": "node tests/test.js",
+    "test2": "node tests/test2.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jaybit0/Jtex.git"
   },
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "bugs": {
+    "url": "https://github.com/Jaybit0/Jtex/issues"
+  },
+  "homepage": "https://github.com/Jaybit0/Jtex#readme"
 }

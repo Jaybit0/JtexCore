@@ -1,24 +1,91 @@
-const TK_EOF = 0;
-const TK_BACKSLASH = 1;
-const TK_COMMENT = 2;
-const TK_USE = 3;
-const TK_VARNAME = 4;
-const TK_ANY = 5;
-const TK_EMPTY = 6;
+const { stat } = require("fs");
 
-export class Tokenizer {
+const Tokens = {
+    EOF: 0,
+    BACKSLASH: 1,
+    COMMENT: 2,
+    USE: 3,
+    VARNAME: 4,
+    ANY: 5,
+    EMPTY: 6,
+    PARENTHESIS_OPEN: 7,
+    PARENTHESIS_CLOSED: 8,
+    CURLY_BRACKET_OPEN: 9,
+    CURLY_BRACKET_CLOSED: 10,
+    SQUARE_BRACKET_OPEN: 11,
+    SQUARE_BRACKET_CLOSED: 12,
+    SEMICOLON: 13,
+    DOUBLE_DASH: 14,
+    COMMA: 15,
+    WHITESPACE: 16,
+    BLOCK_COMMENT: 17,
+    LATEX_COMMAND: 18
+};
+
+class Tokenizer {
     constructor(input) {
         this.state = new State(input);
         this.current = null;
+        this.commentBuffer = []
+        this.lineBuffer = [];
     }
 
     next() {
         this.current = parseNext(this.state);
-        return this.current.id != TK_EOF;
+        console.log(this.current);
+        return this.current.id != Tokens.EOF;
+    }
+
+    nextIgnoreWhitespacesAndComments() {
+        while (this.next() && (this.current.id == Tokens.WHITESPACE || this.current.id == Tokens.COMMENT || this.current.id == Tokens.BLOCK_COMMENT)) {
+            switch(this.current.id) {
+                case Tokens.COMMENT:
+                    this.commentBuffer.push(this.current.data);
+                    this.lineBuffer.push(this.current.data);
+                    break;
+                case Tokens.BLOCK_COMMENT:
+                    var mdat = this.splitLinebreaks(this.current.data);
+                    for (var dat of mdat) {
+                        this.commentBuffer.push("%" + dat);
+                        this.lineBuffer.push("% " + dat);
+                    }
+                    break;
+                default:
+                    var dats = this.splitLinebreaks(this.current.data)
+                    this.lineBuffer[this.lineBuffer.length-1] += dats[0]
+                    for (var i = 1; i < dats.length; i++)
+                        this.lineBuffer.push(dats[i]);
+            }
+        }
+        if (this.current.id != Tokens.EOF)
+            this.lineBuffer[this.lineBuffer.length - 1] += this.current.data;
+        return this.current.id != Tokens.EOF;
+    }
+
+    popComments() {
+        var ret = this.commentBuffer;
+        this.commentBuffer = [];
+        return ret;
+    }
+
+    popLineBuffer() {
+        var ret = this.lineBuffer;
+        this.lineBuffer = [];
+        return ret;
+    }
+
+    splitLinebreaks(str) {
+        var dats = str.split("\r\n");
+        var out = [];
+        for (var dat of dats) {
+            var subsplit = dat.split("\n");
+            out.push(...subsplit)
+        }
+        return out
     }
 }
 
-export class Token {
+class Token {
     constructor(id) {
         this.id = id;
     }
@@ -79,7 +146,7 @@ class State {
     }
 
     eof() {
-        return new Token(TK_EOF).initFull(this.line, this.col, this.ptr, 0, null);
+        return new Token(Tokens.EOF).initFull(this.line, this.col, this.ptr, 0, null);
     }
 
     len() {
@@ -95,7 +162,7 @@ class State {
         if (this.ptr < this.input.length) {
             if (this.input[this.ptr] == "\n") {
                 this.line++;
-                this.col = 0
+                this.col = 0;
             } else {
                 this.col++;
             }
@@ -120,11 +187,11 @@ function parseNext(state) {
 }
 
 function skipWhitespaces(state) {
-    while (state.ptr < state.input.length && (state.input[state.ptr] == " " || state.input[state.ptr] == "\t" || state.input[state.ptr] == "\n")) {
+    while (state.ptr < state.input.length && checkWhitespace(state.input[state.ptr])) {
         state.incPtr();
     }
     if (state.ptr != state.beginPtr) {
-        state.token = new Token(TK_ANY).init(state);
+        state.token = new Token(Tokens.WHITESPACE).init(state);
         return state.finalizeToken();
     }
     return null;
@@ -132,8 +199,20 @@ function skipWhitespaces(state) {
 
 // UTILITY
 
+function checkWhitespace(ch) {
+    return ch == " " || ch == "\t" || ch == "\r" || ch == "\n";
+}
+
 function checkVarname(ch) {
     return (/[a-zA-Z]/).test(ch);
+}
+
+function checkProgressingLatexVarname(ch) {
+    return (/[a-zA-Z0-9]/).test(ch);
+}
+
+function checkSingleLatexEscapeChars(ch) {
+    return ch == "{" || ch == "}" || ch == "[" || ch == "]" || "_" || "^";
 }
 
 // STATES
@@ -143,32 +222,106 @@ function initialState(ch, state) {
         return state.eof();
     switch (ch) {
         case "\\":
-            state.token = new Token(TK_BACKSLASH).init(state);
             state.incPtr();
-            return false;
+            state.setHandler(backslashState);
+            return true;
         case "%":
-            state.setHandler(commentState);
             state.incPtr();
+            state.setHandler(commentState);
+            return true;
+        case "(":
+            state.incPtr();
+            state.token = new Token(Tokens.PARENTHESIS_OPEN).init(state);
+            return false;
+        case ")":
+            state.incPtr();
+            state.token = new Token(Tokens.PARENTHESIS_CLOSED).init(state);
+            return false;
+        case "[":
+            state.incPtr();
+            state.token = new Token(Tokens.SQUARE_BRACKET_OPEN).init(state);
+            return false;
+        case "]":
+            state.incPtr();
+            state.token = new Token(Tokens.SQUARE_BRACKET_CLOSED).init(state);
+            return false;
+        case "{":
+            state.incPtr();
+            state.token = new Token(Tokens.CURLY_BRACKET_OPEN).init(state);
+            return false;
+        case "}":
+            state.incPtr();
+            state.token = new Token(Tokens.CURLY_BRACKET_CLOSED).init(state);
+            return false;
+        case ";":
+            state.incPtr();
+            state.token = new Token(Tokens.SEMICOLON).init(state);
+            return false;
+        case ",":
+            state.incPtr();
+            state.token = new Token(Tokens.COMMA).init(state);
+            return false;
+        case "-":
+            state.incPtr();
+            state.setHandler(dashState);
             return true;
         case "u":
-            state.setHandler(uState);
             state.incPtr();
+            state.setHandler(uState);
+            return true;
+        case "/":
+            state.incPtr();
+            state.setHandler(slashState);
             return true;
     }
     if (checkVarname(ch)) {
-        state.setHandler(varnameState);
         state.incPtr();
+        state.setHandler(varnameState);
         return true;
     }
-    // TODO: Any other token
+    state.incPtr();
+    state.token = new Token(Tokens.ANY).init(state);
+    return false;
+}
+
+function backslashState(ch, state) {
+    if (state.isEof() || checkWhitespace(ch)) {
+        state.token = new Token(Tokens.BACKSLASH).init(state);
+        return false;
+    }
+    state.setHandler(latexPreCommandState);
+    return true;
+}
+
+function latexPreCommandState(ch, state) {
+    if (!checkVarname(ch)) {
+        state.incPtr();
+        state.token = new Token(Tokens.LATEX_COMMAND).init(state);
+        return false;
+    }
+    state.incPtr();
+    state.setHandler(latexCommandState);
+    return true;
+}
+
+function latexCommandState(ch, state) {
+    if (!checkProgressingLatexVarname(ch)) {
+        state.token = new Token(Tokens.LATEX_COMMAND).init(state);
+        return false;
+    }
+    state.incPtr();
+    return true;
 }
 
 function commentState(ch, state) {
-    if (state.isEof())
-        return state.eof();
+    if (state.isEof()) {
+        state.token = new Token(Tokens.COMMENT).init(state);
+        return false;
+    }
 
     if (ch == "\n") {
-        this.token = new Token(TK_COMMENT).init(state);
+        this.token = new Token(Tokens.COMMENT).init(state);
+        this.token.data = this.token.data.replace("\r", "");
         return false;
     }
     state.incPtr();
@@ -207,7 +360,7 @@ function usState(ch, state) {
 
 function useState(ch, state) {
     if (state.isEof() || !checkVarname(ch)) {
-        state.token = new Token(TK_USE).init(state);
+        state.token = new Token(Tokens.USE).init(state);
         return false;
     }
     state.setHandler(varnameState);
@@ -217,10 +370,65 @@ function useState(ch, state) {
 
 function varnameState(ch, state) {
     if (state.isEof() || !checkVarname(ch)) {
-        state.token = new Token(TK_VARNAME).init(state);
-        state.incPtr();
+        state.token = new Token(Tokens.VARNAME).init(state);
         return false;
     }
     state.incPtr();
     return true;
 }
+
+function dashState(ch, state) {
+    if (state.isEof() || ch != "-") {
+        state.token = new Token(Tokens.ANY).init(state);
+        return false;
+    }
+    state.incPtr();
+    state.token = new Token(Tokens.DOUBLE_DASH).init(state);
+    return false;
+}
+
+function slashState(ch, state) {
+    if (state.isEof() || ch != "*") {
+        state.token = new Token(Tokens.ANY).init(state);
+        return false;
+    }
+    state.incPtr();
+    state.setHandler(blockCommentState);
+    return true;
+}
+
+function blockCommentState(ch, state) {
+    if (state.isEof()) {
+        state.token = new Token(Tokens.BLOCK_COMMENT).init(state);
+        state.token.data = state.token.data.substr(2);
+        return false;
+    }
+    state.incPtr();
+    if (ch == "*") {
+        state.setHandler(blockCommentClose1State);
+        return true;
+    }
+    return true;
+}
+
+function blockCommentClose1State(ch, state) {
+    if (state.isEof()) {
+        state.token = new Token(Tokens.BLOCK_COMMENT).init(state);
+        state.token.data = state.token.data.substr(2);
+        return false;
+    }
+    state.incPtr();
+    if (ch == "/") {
+        state.token = new Token(Tokens.BLOCK_COMMENT).init(state);
+        state.token.data = state.token.data.substr(2, state.token.data.length - 4);
+        return false;
+    }
+    state.setHandler(blockCommentState);
+    return true;
+}
+
+// EXPORTS
+
+exports.Tokens = Tokens;
+exports.Token = Token;
+exports.Tokenizer = Tokenizer;
