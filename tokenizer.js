@@ -19,7 +19,8 @@ const Tokens = {
     COMMA: 15,
     WHITESPACE: 16,
     BLOCK_COMMENT: 17,
-    LATEX_COMMAND: 18
+    LATEX_COMMAND: 18,
+    SLASH: 19
 };
 
 class Tokenizer {
@@ -32,7 +33,6 @@ class Tokenizer {
 
     next() {
         this.current = parseNext(this.state);
-        console.log(this.current);
         return this.current.id != Tokens.EOF;
     }
 
@@ -389,7 +389,7 @@ function dashState(ch, state) {
 
 function slashState(ch, state) {
     if (state.isEof() || ch != "*") {
-        state.token = new Token(Tokens.ANY).init(state);
+        state.token = new Token(Tokens.SLASH).init(state);
         return false;
     }
     state.incPtr();

@@ -32,7 +32,7 @@ class Parser {
         if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
             return false;
         if (this.tokenizer.current.id != Tokens.VARNAME)
-            throw new ParserError("A package name was expected. Given: " + this.tokenizer.current.data);
+            throw new ParserError("A package name was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
         var mImport = {
             package: this.tokenizer.current.data,
             comments: this.tokenizer.popComments()
@@ -64,13 +64,40 @@ class Parser {
     }
 
     parseJtexCommand(out) {
-
+        if (!this.tokenizer.next())
+            throw new ParserError("A jtex-command was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
+        switch(this.tokenizer.current.id) {
+            case Tokens.WHITESPACE:
+                this.parseJtexMathInline(out);
+                break;
+            default:
+                throw new ParserError("?").init(this.tokenizer.current);
+        }
     }
-}
 
-class SyntaxElement {
-    constructor(handler, params) {
-
+    parseJtexMathInline(out) {
+        var bracketCount = 0;
+        var dataTree = {data: [], parent: null};
+        var current = dataTree;
+        while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
+            if (this.tokenizer.current.id == Tokens.PARENTHESIS_OPEN) {
+                bracketCount++;
+                var subTree = {data: [], parent: current};
+                current.data.push(subTree);
+                current = subTree;
+            } else if (this.tokenizer.current.id == Tokens.PARENTHESIS_CLOSED) {
+                bracketCount--;
+                current = current.parent;
+            } else if (this.tokenizer.current.id == Tokens.SEMICOLON && bracketCount == 0) {
+                break;
+            } else {
+                current.data.push(this.tokenizer.current);
+            }
+        }
+        if (bracketCount != 0)
+            throw new ParserError("Bracket error").init(this.tokenizer.current);
+        console.log(dataTree.data)
+        // TODO
     }
 }
 
