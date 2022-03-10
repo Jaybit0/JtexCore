@@ -21,7 +21,9 @@ const Tokens = {
     BLOCK_COMMENT: 17,
     LATEX_COMMAND: 18,
     SLASH: 19,
-    STAR: 20
+    STAR: 20,
+    ROOF: 21,
+    DOUBLE_SLASH: 22
 };
 
 class Tokenizer {
@@ -291,6 +293,10 @@ function initialState(ch, state) {
             state.incPtr();
             state.token = new Token(Tokens.STAR).init(state);
             return false;
+        case "^":
+            state.incPtr();
+            state.token = new Token(Tokens.ROOF).init(state);
+            return false;
     }
     if (checkVarname(ch)) {
         state.incPtr();
@@ -406,8 +412,13 @@ function dashState(ch, state) {
 }
 
 function slashState(ch, state) {
-    if (state.isEof() || ch != "*") {
+    if (state.isEof() || (ch != "*" && ch != "/")) {
         state.token = new Token(Tokens.SLASH).init(state);
+        return false;
+    }
+    if (ch == "/") {
+        state.incPtr();
+        state.token = new Token(Tokens.DOUBLE_SLASH).init(state);
         return false;
     }
     state.incPtr();

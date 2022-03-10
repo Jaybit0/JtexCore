@@ -161,6 +161,8 @@ function generateMathBinaryOperators(inline) {
     var dict = {};
     dict[ParserTokens.FRACTION] = binaryOperatorFrac;
     dict[ParserTokens.MULTIPLY] = binaryOperatorMul;
+    dict[ParserTokens.POWER] = binaryOperatorPow;
+    dict[ParserTokens.INTEGRAL] = binaryOperatorIntegral;
     return (parse_tree, parse_stack, ptr) => {
         if (ptr == 0 || parse_tree.length <= ptr)
             return false;
@@ -177,7 +179,7 @@ function generateMathBinaryOperators(inline) {
     };
 }
 
-// OPERATORS: take two tokens, return one token
+// BINARY OPERATORS: take two tokens, return one token
 
 function binaryOperatorFrac(op1, op2) {
     return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("\\frac{" + op1.unwrap().toString() + "}{" + op2.unwrap().toString() + "}");
@@ -186,5 +188,17 @@ function binaryOperatorFrac(op1, op2) {
 function binaryOperatorMul(op1, op2) {
     return new ParserToken(ParserToken.STRING).at(op1, op2).withData(op1.unwrap().toString() + " \\cdot " + op2.unwrap().toString());
 }
+
+function binaryOperatorPow(op1, op2) {
+    return new ParserToken(ParserToken.STRING).at(op1, op2).withData(op1.unwrap().toString() + "^{" + op2.unwrap().toString() + "}");
+}
+
+function binaryOperatorIntegral(op1, op2) {
+    return new ParserToken(ParserToken.STRING).at(op1, op2).withData("\\int_{" + op1.unwrap().toString() + "}^{" + op2.unwrap().toString() + "}");
+}
+
+// UNARY PREOPERATORS
+
+
 
 exports.Parser = Parser;

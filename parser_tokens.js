@@ -3,7 +3,9 @@ const {Tokenizer, Tokens, Token} = require("./tokenizer.js");
 const ParserTokens = {
     STRING: 0,
     FRACTION: 1,
-    MULTIPLY: 2
+    MULTIPLY: 2,
+    POWER: 3,
+    INTEGRAL: 4
 };
 
 class ParserToken {
@@ -13,18 +15,22 @@ class ParserToken {
     }
 
     fromLexerToken(token) {
+        this.withData(token.data).at(token, token);
         switch (token.id) {
             case Tokens.SLASH:
                 this.id = ParserTokens.FRACTION;
-                this.withData(token.data).at(token, token);
                 return this;
             case Tokens.STAR:
                 this.id = ParserTokens.MULTIPLY;
-                this.withData(token.data).at(token, token);
+                return this;
+            case Tokens.ROOF:
+                this.id = ParserTokens.POWER;
+                return this;
+            case Tokens.DOUBLE_SLASH:
+                this.id = ParserTokens.INTEGRAL;
                 return this;
             default:
                 this.id = ParserTokens.STRING;
-                this.withData(token.data).at(token, token);
                 return this;
         }
     }
