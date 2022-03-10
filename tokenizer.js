@@ -20,7 +20,8 @@ const Tokens = {
     WHITESPACE: 16,
     BLOCK_COMMENT: 17,
     LATEX_COMMAND: 18,
-    SLASH: 19
+    SLASH: 19,
+    STAR: 20
 };
 
 class Tokenizer {
@@ -104,6 +105,19 @@ class Token {
         this.col = col;
         this.idx = idx;
         this.len = len;
+        this.data = data;
+        return this;
+    }
+
+    initFrom(token) {
+        this.line = token.line;
+        this.col = token.col;
+        this.idx = token.col;
+        return this;
+    }
+
+    withData(data) {
+        this.len = data.length;
         this.data = data;
         return this;
     }
@@ -273,6 +287,10 @@ function initialState(ch, state) {
             state.incPtr();
             state.setHandler(slashState);
             return true;
+        case "*":
+            state.incPtr();
+            state.token = new Token(Tokens.STAR).init(state);
+            return false;
     }
     if (checkVarname(ch)) {
         state.incPtr();

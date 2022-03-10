@@ -9,6 +9,8 @@ use amsmath
 Das ist ein Test 123öcoi382365&&)/;
 -- a:=(2+(5*7)-3)/(3+2);
 
+-- a := 2/5/3;
+
 /*--m{
     \text{Sei -- a:=2/3};}
 }
