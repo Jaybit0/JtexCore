@@ -1,4 +1,4 @@
-const {Tokenizer, Tokens, Token, LineBuffer} = require("./tokenizer.js");
+const {Tokenizer, Tokens, Token, LineBuffer, splitLinebreaks} = require("./tokenizer.js");
 const {ParserTokens, ParserToken} = require("./parser_tokens.js");
 
 class Parser {
@@ -17,15 +17,15 @@ class Parser {
 
     }
 
-    parse() {
+    parse(lineBreak = "\r\n") {
         var buffer = new LineBuffer();
-        this.tokenizer.activateTokenBuffer(false);
+        this.tokenizer.activateTokenBuffer(true);
         this.parseUse(buffer);
         this.tokenizer.activateTokenBuffer(true);
         this.tokenizer.pushToTokenBuffer(new Token(Tokens.WHITESPACE).initFull(-1, -1, -1, 2, "\n\n"));
         this.tokenizer.pushToTokenBuffer(this.tokenizer.current);
         this.parseMain(buffer);
-        return buffer.toString("\r\n");
+        return buffer.toString(lineBreak);
     }
 
     parseUse(buffer) {
@@ -50,7 +50,7 @@ class Parser {
             throw new ParserError("A package name was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
         var mImport = {
             package: this.tokenizer.current.data,
-            comments: this.tokenizer.popComments()
+            comments: splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
         };
         managedImports.push(mImport);
         while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
@@ -71,7 +71,7 @@ class Parser {
         while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
-                var lb = buffer.splitLinebreaks(res);
+                var lb = splitLinebreaks(res);
                 buffer.appendMany(lb);
                 var bufferActive = this.tokenizer.isTokenBufferActive();
                 this.tokenizer.activateTokenBuffer(false);
@@ -79,7 +79,7 @@ class Parser {
                 this.tokenizer.activateTokenBuffer(bufferActive);
             }
         }
-        buffer.appendMany(buffer.splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
+        buffer.appendMany(splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
     parseJtexCommand(buffer) {

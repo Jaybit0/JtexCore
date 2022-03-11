@@ -30,7 +30,6 @@ class Tokenizer {
     constructor(input) {
         this.state = new State(input);
         this.current = null;
-        this.commentBuffer = []
         this.tokenBuffer = [];
         this.tokenBufferActive = false;
     }
@@ -51,36 +50,20 @@ class Tokenizer {
     }
 
     nextIgnoreWhitespacesAndComments() {
-        while (this.next() && (this.current.id == Tokens.WHITESPACE || this.current.id == Tokens.COMMENT || this.current.id == Tokens.BLOCK_COMMENT)) {
-            switch(this.current.id) {
-                case Tokens.COMMENT:
-                    this.commentBuffer.push(this.current.data);
-                    break;
-                case Tokens.BLOCK_COMMENT:
-                    var mdat = splitLinebreaks(this.current.data);
-                    for (var dat of mdat) {
-                        this.commentBuffer.push("%" + dat);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
+        while (this.next() && (this.current.id == Tokens.WHITESPACE || this.current.id == Tokens.COMMENT || this.current.id == Tokens.BLOCK_COMMENT))
+            continue;
         return this.current.id != Tokens.EOF;
     }
 
-    popComments() {
-        var ret = this.commentBuffer;
-        this.commentBuffer = [];
-        return ret;
-    }
-
-    resolveTokenBuffer(cut = 0) {
+    resolveTokenBuffer(cut = 0, filter = x => true) {
         var ret = this.tokenBuffer;
         this.tokenBuffer = [];
         if (cut != 0)
             ret = ret.slice(0, ret.length-cut);
-        return ret.map(cur => cur.toString()).reduce((prev, cur) => prev + cur);
+        var filtered = ret.filter(filter).map(cur => cur.toString());
+        if (filtered.length == 0)
+            return [];
+        return filtered.reduce((prev, cur) => prev + cur);
     }
 
     pushToTokenBuffer(token) {
@@ -225,16 +208,6 @@ class LineBuffer {
             return this;
         this.lineBuffer.push(...str);
         return this;
-    }
-
-    splitLinebreaks(str) {
-        var dats = str.split("\r\n");
-        var out = [];
-        for (var dat of dats) {
-            var subsplit = dat.split("\n");
-            out.push(...subsplit)
-        }
-        return out;
     }
 
     toString(splitter) {
@@ -528,3 +501,4 @@ exports.Tokens = Tokens;
 exports.Token = Token;
 exports.Tokenizer = Tokenizer;
 exports.LineBuffer = LineBuffer;
+exports.splitLinebreaks = splitLinebreaks;
