@@ -30,7 +30,7 @@ Note that this header is only recognized if it is the first element in the docum
 
 ## Body
 
-The body contains the content that should be converted to Latex-code. You are able to utilize any Syntax elements recognized in LaTex. Additionally, you are able to write [Jtex-commands](#commands).
+The body contains the content that should be converted to LaTex-code. You are able to utilize any Syntax elements recognized in LaTex. Additionally, you are able to write [Jtex-commands](#commands).
 
 ## Commands
 
