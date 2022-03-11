@@ -1,20 +1,34 @@
-const {Tokenizer, Tokens, Token} = require("./tokenizer.js");
+const {Tokenizer, Tokens, Token, LineBuffer} = require("./tokenizer.js");
 const {ParserTokens, ParserToken} = require("./parser_tokens.js");
 
 class Parser {
     constructor(tokenizer) {
         this.tokenizer = tokenizer;
+        this.commandList = {};
+    }
+
+    /**
+     * 
+     * @param { [int] } token_id the id of the command-token after '--'
+     * @param { [function(ParserToken): boolean] } checker a checker function to determine if the token represents the command
+     * @param { [function(LineBuffer, ParserToken, Parser): void] } handler a handler function to convert the command to a string
+     */
+    initCommand(token_id, checker, handler) {
+
     }
 
     parse() {
-        var out = []
-        this.parseUse(out);
-        this.tokenizer.popLineBuffer();
-        this.parseMain(out);
-        return out.join("\n");
+        var buffer = new LineBuffer();
+        this.tokenizer.activateTokenBuffer(false);
+        this.parseUse(buffer);
+        this.tokenizer.activateTokenBuffer(true);
+        this.tokenizer.pushToTokenBuffer(new Token(Tokens.WHITESPACE).initFull(-1, -1, -1, 2, "\n\n"));
+        this.tokenizer.pushToTokenBuffer(this.tokenizer.current);
+        this.parseMain(buffer);
+        return buffer.toString("\r\n");
     }
 
-    parseUse(out) {
+    parseUse(buffer) {
         var managedImports = [];
         if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
             return;
@@ -22,8 +36,8 @@ class Parser {
             continue;
         for (var mImport of managedImports) {
             if (mImport.comments.length != 0)
-                out.push(...mImport.comments);
-            out.push("\\usepackage{" + mImport.package + "}");
+                buffer.appendMany(mImport.comments);
+            buffer.appendNewLine("\\usepackage{" + mImport.package + "}");
         }
     }
 
@@ -53,30 +67,34 @@ class Parser {
         return true;
     }
 
-    parseMain(out) {
+    parseMain(buffer) {
         while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
-                out.push(...this.tokenizer.popLineBuffer());
-                out[out.length-1] = out[out.length-1].substr(0, out[out.length-1].length-2);
-                this.parseJtexCommand(out);
+                var res = this.tokenizer.resolveTokenBuffer(1);
+                var lb = buffer.splitLinebreaks(res);
+                buffer.appendMany(lb);
+                var bufferActive = this.tokenizer.isTokenBufferActive();
+                this.tokenizer.activateTokenBuffer(false);
+                this.parseJtexCommand(buffer);
+                this.tokenizer.activateTokenBuffer(bufferActive);
             }
         }
-        out.push(...this.tokenizer.popLineBuffer());
+        buffer.appendMany(buffer.splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
-    parseJtexCommand(out) {
+    parseJtexCommand(buffer) {
         if (!this.tokenizer.next())
             throw new ParserError("A jtex-command was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
         switch(this.tokenizer.current.id) {
             case Tokens.WHITESPACE:
-                this.parseJtexMathInline(out);
+                this.parseJtexMathInline(buffer);
                 break;
             default:
                 throw new ParserError("?").init(this.tokenizer.current);
         }
     }
 
-    parseJtexMathInline(out) {
+    parseJtexMathInline(buffer) {
         var bracketCount = 0;
         var dataTree = {data: [], parent: null};
         var current = dataTree;
@@ -101,7 +119,7 @@ class Parser {
         var wrapperTree = {data: [dataTree], parent: null};
         dataTree.parent = wrapperTree;
         var mtree = parseMathTree(wrapperTree, true)[0];
-        out[out.length-1] += "$" + mtree.unwrap().toString() + "$";
+        buffer.append("$" + mtree.unwrap().toString() + "$");
     }
 }
 

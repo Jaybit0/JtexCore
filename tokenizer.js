@@ -31,11 +31,22 @@ class Tokenizer {
         this.state = new State(input);
         this.current = null;
         this.commentBuffer = []
-        this.lineBuffer = [];
+        this.tokenBuffer = [];
+        this.tokenBufferActive = false;
+    }
+
+    activateTokenBuffer(active) {
+        this.tokenBufferActive = active;
+    }
+
+    isTokenBufferActive() {
+        return this.tokenBufferActive;
     }
 
     next() {
         this.current = parseNext(this.state);
+        if (this.tokenBufferActive && this.current.id != Tokens.EOF)
+            this.tokenBuffer.push(this.current);
         return this.current.id != Tokens.EOF;
     }
 
@@ -44,24 +55,17 @@ class Tokenizer {
             switch(this.current.id) {
                 case Tokens.COMMENT:
                     this.commentBuffer.push(this.current.data);
-                    this.lineBuffer.push(this.current.data);
                     break;
                 case Tokens.BLOCK_COMMENT:
-                    var mdat = this.splitLinebreaks(this.current.data);
+                    var mdat = splitLinebreaks(this.current.data);
                     for (var dat of mdat) {
                         this.commentBuffer.push("%" + dat);
-                        this.lineBuffer.push("% " + dat);
                     }
                     break;
                 default:
-                    var dats = this.splitLinebreaks(this.current.data)
-                    this.lineBuffer[this.lineBuffer.length-1] += dats[0]
-                    for (var i = 1; i < dats.length; i++)
-                        this.lineBuffer.push(dats[i]);
+                    break;
             }
         }
-        if (this.current.id != Tokens.EOF)
-            this.lineBuffer[this.lineBuffer.length - 1] += this.current.data;
         return this.current.id != Tokens.EOF;
     }
 
@@ -71,20 +75,16 @@ class Tokenizer {
         return ret;
     }
 
-    popLineBuffer() {
-        var ret = this.lineBuffer;
-        this.lineBuffer = [];
-        return ret;
+    resolveTokenBuffer(cut = 0) {
+        var ret = this.tokenBuffer;
+        this.tokenBuffer = [];
+        if (cut != 0)
+            ret = ret.slice(0, ret.length-cut);
+        return ret.map(cur => cur.toString()).reduce((prev, cur) => prev + cur);
     }
 
-    splitLinebreaks(str) {
-        var dats = str.split("\r\n");
-        var out = [];
-        for (var dat of dats) {
-            var subsplit = dat.split("\n");
-            out.push(...subsplit)
-        }
-        return out
+    pushToTokenBuffer(token) {
+        this.tokenBuffer.push(token);
     }
 }
 
@@ -122,6 +122,15 @@ class Token {
         this.len = data.length;
         this.data = data;
         return this;
+    }
+
+    toString() {
+        switch (this.id) {
+            case Tokens.BLOCK_COMMENT:
+                return "%" + this.data.replaceAll("\n", "\n%");
+            default:
+                return this.data;
+        }
     }
 }
 
@@ -186,6 +195,53 @@ class State {
     }
 }
 
+class LineBuffer {
+    constructor(buffer = []) {
+        this.lineBuffer = buffer;
+    }
+
+    append(str) {
+        this.lineBuffer[this.lineBuffer.length-1] += str;
+        return this;
+    }
+
+    appendNewLine(str) {
+        this.lineBuffer.push(str);
+        return this;
+    }
+
+    appendMany(str) {
+        if (str.length == 0)
+            return this;
+        this.lineBuffer[this.lineBuffer.length-1] += str[0];
+        for (var i = 0; i < str.length; i++) {
+            this.lineBuffer.push(str[i])
+        }
+        return this;
+    }
+
+    appendManyNewLine(str) {
+        if (str.length == 0)
+            return this;
+        this.lineBuffer.push(...str);
+        return this;
+    }
+
+    splitLinebreaks(str) {
+        var dats = str.split("\r\n");
+        var out = [];
+        for (var dat of dats) {
+            var subsplit = dat.split("\n");
+            out.push(...subsplit)
+        }
+        return out;
+    }
+
+    toString(splitter) {
+        return this.lineBuffer.join(splitter);
+    }
+}
+
 function parseNext(state) {
     if (state.isEof())
         return state.eof();
@@ -229,6 +285,16 @@ function checkProgressingLatexVarname(ch) {
 
 function checkSingleLatexEscapeChars(ch) {
     return ch == "{" || ch == "}" || ch == "[" || ch == "]" || "_" || "^";
+}
+
+function splitLinebreaks(str) {
+    var dats = str.split("\r\n");
+    var out = [];
+    for (var dat of dats) {
+        var subsplit = dat.split("\n");
+        out.push(...subsplit)
+    }
+    return out
 }
 
 // STATES
@@ -461,3 +527,4 @@ function blockCommentClose1State(ch, state) {
 exports.Tokens = Tokens;
 exports.Token = Token;
 exports.Tokenizer = Tokenizer;
+exports.LineBuffer = LineBuffer;
