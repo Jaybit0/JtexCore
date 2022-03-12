@@ -77,7 +77,7 @@ class Tokenizer {
             ret = ret.slice(0, ret.length-cut);
         var filtered = ret.filter(filter).map(cur => cur.toString());
         if (filtered.length == 0)
-            return [];
+            return "";
         return filtered.reduce((prev, cur) => prev + cur);
     }
 
@@ -212,7 +212,7 @@ class LineBuffer {
         if (str.length == 0)
             return this;
         this.lineBuffer[this.lineBuffer.length-1] += str[0];
-        for (var i = 0; i < str.length; i++) {
+        for (var i = 1; i < str.length; i++) {
             this.lineBuffer.push(str[i])
         }
         return this;

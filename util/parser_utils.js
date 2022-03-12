@@ -1,4 +1,4 @@
-const {Token} = require("../tokenizer.js");
+const {Token, Tokenizer} = require("../tokenizer.js");
 const {ParserToken, ParserTokens} = require("../parser_tokens.js");
 
 function parseMathTree(parse_tree, inline) {
@@ -51,6 +51,16 @@ function generateMathBinaryOperators(inline) {
     };
 }
 
+function tokenizeSubstring(str, refToken) {
+    var tokenizer = new Tokenizer(str);
+    tokenizer.activateTokenBuffer(false);
+    var tokens = [];
+    while (tokenizer.next())
+        tokens.push(tokenizer.current);
+    tokens.forEach(val => {val.line = refToken.line; val.col = refToken.col; val.idx = refToken.idx;});
+    return tokens;
+}
+
 // BINARY OPERATORS: take two tokens, return one token
 
 function binaryOperatorFrac(op1, op2) {
@@ -70,3 +80,4 @@ function binaryOperatorIntegral(op1, op2) {
 }
 
 exports.parseMathTree = parseMathTree;
+exports.tokenizeSubstring = tokenizeSubstring;

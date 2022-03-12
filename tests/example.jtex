@@ -2,7 +2,7 @@
 import all packages
 to continue with the bla
 */
-use amsmath
+use amsmath, test
 
 \test123{}
 
