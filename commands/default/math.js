@@ -16,9 +16,9 @@ function parseJtexMathInline(buffer, ctx) {
     var dataTree = {data: [], parent: null};
     var current = dataTree;
     while (ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments()) {
-        if (ctx.parser.tokenizer.current.id == Tokens.DOUBLE_DASH) {
-            ctx.parser.parseJtexCommand(buffer, ctx);
-        } else if (ctx.parser.tokenizer.current.id == Tokens.PARENTHESIS_OPEN) {
+        if (ctx.parser.parseJtexCommand(buffer, ctx))
+            continue;
+        if (ctx.parser.tokenizer.current.id == Tokens.PARENTHESIS_OPEN) {
             bracketCount++;
             var subTree = {data: [], parent: current};
             current.data.push(subTree);

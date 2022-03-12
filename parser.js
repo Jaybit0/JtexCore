@@ -1,4 +1,4 @@
-const {splitLinebreaks} = require("./tokenizer.js");
+const {Tokenizer, splitLinebreaks} = require("./tokenizer.js");
 const {Tokens} = require("./constants.js");
 const {LineBuffer} = require("./util/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
@@ -7,18 +7,25 @@ const {JtexCommandMathInline} = require("./commands/default/math.js");
 const pUtils = require("./util/parser_utils.js");
 
 class Parser {
+    /**
+     * Creates a new parser instance from the given tokenizer.
+     * @param {Tokenizer} tokenizer the corresponding tokenizer instance
+     */
     constructor(tokenizer) {
         this.tokenizer = tokenizer;
         this.commandList = {};
-        this.initDefaultCommands();
+        this.#initDefaultCommands();
     }
 
-    initDefaultCommands() {
+    /**
+     * Initializes all default Jtex-commands.
+     */
+    #initDefaultCommands() {
         this.initJtexCommand(new JtexCommandMathInline());
     }
 
     /**
-     * 
+     * Initializes a new Jtex-command. Additional commands can be registered here.
      * @param { [JtexCommand] } command the Jtex-command
      */
     initJtexCommand(command) {
@@ -27,22 +34,33 @@ class Parser {
         this.commandList[command.token_id].push(command);
     }
 
+    /**
+     * Removes all Jtex-commands with the given name. Mainly used to remove or overwrite default commands.
+     * @param {string} name the name of the command
+     */
     removeJtexCommand(name) {
         for (var [key, val] of this.commandList.entries())
             this.commandList[key] = val.filter(cmd => cmd.name == name);
     }
 
+    /**
+     * Parses the tokens from the Tokenizer instance to a LaTeX-string.
+     * @param {string} lineBreak 
+     * @returns {string} a string in LaTeX format
+     */
     parse(lineBreak = "\r\n") {
         var buffer = new LineBuffer();
         this.tokenizer.activateTokenBuffer(true);
         this.parseUse(buffer);
         this.tokenizer.activateTokenBuffer(true);
-        //this.tokenizer.pushToTokenBuffer(new Token(Tokens.WHITESPACE).initFull(-1, -1, -1, 2, lineBreak + lineBreak));
-        //this.tokenizer.pushToTokenBuffer(this.tokenizer.current);
         this.parseMain(buffer);
         return buffer.toString(lineBreak);
     }
 
+    /**
+     * Parses the use-header.
+     * @param {LineBuffer} buffer a line buffer to write the output to 
+     */
     parseUse(buffer) {
         var managedImports = [];
         if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
@@ -56,6 +74,11 @@ class Parser {
         }
     }
 
+    /**
+     * 
+     * @param {Array<Object>} managedImports 
+     * @returns {boolean} whether the next use-expression could be parsed
+     */
     parseUseExpr(managedImports) {
         if (this.tokenizer.current.id != Tokens.USE)
             return false;
@@ -82,6 +105,10 @@ class Parser {
         return true;
     }
 
+    /**
+     * Parses the main body of the document.
+     * @param {LineBuffer} buffer a LineBuffer 
+     */
     parseMain(buffer) {
         while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
@@ -97,7 +124,15 @@ class Parser {
         buffer.appendMany(splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
+    /**
+     * Parses a Jtex-command.
+     * @param {LineBuffer} buffer a line-buffer
+     * @param {ParserContext} ctx the parser-context
+     * @returns {boolean} whether there was a Jtex-command
+     */
     parseJtexCommand(buffer, ctx = new ParserContext(this)) {
+        if (this.tokenizer.current.id != Tokens.DOUBLE_DASH)
+            return false;
         if (!this.tokenizer.next())
             throw new ParserError("A jtex-command was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
         if (this.tokenizer.current.id in this.commandList) {
@@ -118,22 +153,36 @@ class Parser {
             }
         }
         // TODO: interpret token as string
-        return false;
+        return true;
     }
 }
 
 class ParserContext {
+    /**
+     * Creates a new parser context.
+     * @param {Parser} parser a parser
+     * @param {Array<string>} ctx the command call-stack
+     */
     constructor(parser, ctx = []) {
         this.parser = parser;
         this.ctx = ctx;
     }
 
+    /**
+     * Pushes a new command onto the command call-stack.
+     * @param {string} ctx the command name
+     */
     push(ctx) {
         this.ctx.push(ctx);
     }
 
-    pop(ctx) {
-        return this.ctx.pop(ctx);
+    /**
+     * Pops the last command from the command call-stack.
+     * @param {string} ctx 
+     * @returns {string} the popped command name
+     */
+    pop() {
+        return this.ctx.pop();
     }
 }
 

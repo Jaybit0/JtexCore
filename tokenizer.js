@@ -111,7 +111,7 @@ class State {
         this.input = input;
         this.beginPtr = 0;
         this.ptr = 0;
-        this.line = 0;
+        this.line = 1;
         this.beginLine = 0;
         this.col = 0;
         this.beginCol = 0;
