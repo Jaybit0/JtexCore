@@ -1,20 +1,33 @@
 const {Tokenizer, Tokens, Token, LineBuffer, splitLinebreaks} = require("./tokenizer.js");
 const {ParserTokens, ParserToken} = require("./parser_tokens.js");
+const {ParserError} = require("./errors/parser_error.js");
+const {JtexCommand} = require("./commands/command.js");
+const {JtexCommandMathInline} = require("./commands/default/math.js");
 
 class Parser {
     constructor(tokenizer) {
         this.tokenizer = tokenizer;
         this.commandList = {};
+        this.initDefaultCommands();
+    }
+
+    initDefaultCommands() {
+        this.initJtexCommand(new JtexCommandMathInline());
     }
 
     /**
      * 
-     * @param { [int] } token_id the id of the command-token after '--'
-     * @param { [function(ParserToken): boolean] } checker a checker function to determine if the token represents the command
-     * @param { [function(LineBuffer, ParserToken, Parser): void] } handler a handler function to convert the command to a string
+     * @param { [JtexCommand] } command the Jtex-command
      */
-    initCommand(token_id, checker, handler) {
+    initJtexCommand(command) {
+        if (!(command.token_id in this.commandList))
+            this.commandList[command.token_id] = [];
+        this.commandList[command.token_id].push(command);
+    }
 
+    removeJtexCommand(name) {
+        for (var [key, val] of this.commandList.entries())
+            this.commandList[key] = val.filter(cmd => cmd.name == name);
     }
 
     parse(lineBreak = "\r\n") {
@@ -82,65 +95,56 @@ class Parser {
         buffer.appendMany(splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
-    parseJtexCommand(buffer) {
+    parseJtexCommand(buffer, ctx = new ParserContext(this)) {
         if (!this.tokenizer.next())
             throw new ParserError("A jtex-command was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
-        switch(this.tokenizer.current.id) {
-            case Tokens.WHITESPACE:
-                this.parseJtexMathInline(buffer);
-                break;
-            default:
-                throw new ParserError("?").init(this.tokenizer.current);
-        }
-    }
-
-    parseJtexMathInline(buffer) {
-        var bracketCount = 0;
-        var dataTree = {data: [], parent: null};
-        var current = dataTree;
-        while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
-            if (this.tokenizer.current.id == Tokens.PARENTHESIS_OPEN) {
-                bracketCount++;
-                var subTree = {data: [], parent: current};
-                current.data.push(subTree);
-                current = subTree;
-            } else if (this.tokenizer.current.id == Tokens.PARENTHESIS_CLOSED) {
-                bracketCount--;
-                current = current.parent;
-            } else if (this.tokenizer.current.id == Tokens.SEMICOLON && bracketCount == 0) {
-                break;
-            } else {
-                current.data.push(this.tokenizer.current);
+        if (this.tokenizer.current.id in this.commandList) {
+            for (var cmd of this.commandList[this.tokenizer.current.id]) {
+                if (!cmd.checker(this.tokenizer.current))
+                    continue;
+                ctx.push(cmd.name);
+                if (ctx.ctx.length == 1) {
+                    cmd.handler(buffer, ctx);
+                } else {
+                    var mBuffer = new LineBuffer();
+                    cmd.handler(mBuffer, ctx);
+                    var tokens = tokenizeSubstring(mBuffer.toString(), this.tokenizer.current);
+                    this.tokenizer.queueTokens(tokens);
+                }
+                ctx.pop();
+                return true;
             }
         }
-        if (bracketCount != 0)
-            throw new ParserError("Bracket error").init(this.tokenizer.current);
-        // Traverse through tree-node elements to check for parseable objects
-        var wrapperTree = {data: [dataTree], parent: null};
-        dataTree.parent = wrapperTree;
-        var mtree = parseMathTree(wrapperTree, true)[0];
-        buffer.append("$" + mtree.unwrap().toString() + "$");
+        // TODO: interpret token as string
+        return false;
     }
 }
 
-class ParserError extends Error {
-    constructor(msg) {
-        super(msg);
-        this.msg = msg;
-        this.token = null;
+class ParserContext {
+    constructor(parser, ctx = []) {
+        this.parser = parser;
+        this.ctx = ctx;
     }
 
-    init(token) {
-        this.token = token;
+    push(ctx) {
+        this.ctx.push(ctx);
     }
 
-    toString() {
-        var ret = [
-            "A parser error occured" + (this.token != null ? " (line: " + this.token.line + ", column: " + this.token.col + ")." : "."),
-            "Reason: " + (this.msg != null ? this.msg : "unknown")
-        ]
-        return ret.join("\n");
+    pop(ctx) {
+        return this.ctx.pop(ctx);
     }
+}
+
+// UTILITY
+
+function tokenizeSubstring(str, refToken) {
+    var tokenizer = new Tokenizer(str);
+    tokenizer.activateTokenBuffer(false);
+    var tokens = [];
+    while (tokenizer.next())
+        tokens.push(tokenizer.current);
+    tokens.forEach(val => {val.line = refToken.line; val.col = refToken.col; val.idx = refToken.idx;});
+    return tokens;
 }
 
 // Parsing
@@ -220,3 +224,6 @@ function binaryOperatorIntegral(op1, op2) {
 
 
 exports.Parser = Parser;
+exports.ParserContext = ParserContext;
+exports.ParserError = ParserError;
+exports.JtexCommand = JtexCommand;

@@ -32,6 +32,7 @@ class Tokenizer {
         this.current = null;
         this.tokenBuffer = [];
         this.tokenBufferActive = false;
+        this.tokenQueue = [];
     }
 
     activateTokenBuffer(active) {
@@ -43,10 +44,24 @@ class Tokenizer {
     }
 
     next() {
+        if (this.tokenQueue.length != 0) {
+            this.current = this.tokenQueue.shift();
+            if (this.tokenBufferActive && this.current.id != Tokens.EOF)
+                this.tokenBuffer.push(this.current);
+            return this.current.id != Tokens.EOF;
+        }
         this.current = parseNext(this.state);
         if (this.tokenBufferActive && this.current.id != Tokens.EOF)
             this.tokenBuffer.push(this.current);
         return this.current.id != Tokens.EOF;
+    }
+
+    queueToken(token) {
+        this.tokenQueue.push(token);
+    }
+
+    queueTokens(tokens) {
+        this.tokenQueue.push(...tokens);
     }
 
     nextIgnoreWhitespacesAndComments() {
@@ -179,7 +194,7 @@ class State {
 }
 
 class LineBuffer {
-    constructor(buffer = []) {
+    constructor(buffer = [""]) {
         this.lineBuffer = buffer;
     }
 
