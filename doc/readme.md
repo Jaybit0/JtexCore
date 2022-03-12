@@ -60,6 +60,8 @@ will be converted to
 $a:=\frac{2}{3+5}$
 ```
 
+Note that `;` is used to indicate the end of the inline math mode. However, `;` will be interpreted as a string if occurring within any brackets.
+
 ### Symbols
 
 (TODO)
