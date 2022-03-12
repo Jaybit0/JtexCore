@@ -46,6 +46,33 @@ The Jtex math mode extends the LaTex math mode from `amsmath` by providing addit
 
 ### Inline math mode
 
-### Basic syntax
+The inline math mode is indicated by `--` followed by any whitespace. Here, the converter interprets [basic syntax](#basic-syntax) and converts it to a LaTeX inline expression. For instance, the expression
+
+```
+-- a := 2/(3+5);
+```
+
+will be converted to
+
+```
+$a:=\frac{2}{3+5}$
+```
+
+### Symbols
+
+(TODO)
+
+| Symbol | Description | Example  | Output         |
+| ------ | ----------- | -------- | -------------- |
+| `=>`   | Implication | `x => y` | `x \implies y` |
+
+### Binary operators
+
+| Operator | Description | Example     | Output          |
+| -------- | ----------- | ----------- | --------------- |
+| `/`      | Fraction    | `1/(2+3)`   | `\frac{1}{2+3}` |
+| `*`      | Product     | `1*2`       | `1 \cdot 2`     |
+| `^`      | Power       | `2^(3+4)`   | `2^{3+4}`       |
+| `//`     | Integral    | `(0)//(10)` | `\int_{0}^{10}` |
 
 ## Comments
