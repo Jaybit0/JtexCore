@@ -1,12 +1,4 @@
-const {Tokenizer, Tokens, Token} = require("./tokenizer.js");
-
-const ParserTokens = {
-    STRING: 0,
-    FRACTION: 1,
-    MULTIPLY: 2,
-    POWER: 3,
-    INTEGRAL: 4
-};
+const {Tokens, ParserTokens} = require("./constants.js");
 
 class ParserToken {
     constructor(id) {

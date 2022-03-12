@@ -1,5 +1,5 @@
 const {Token, Tokenizer} = require("../tokenizer.js");
-const {ParserToken, ParserTokens} = require("../parser_tokens.js");
+const {ParserToken, ParserTokens} = require("../parser_token.js");
 
 function parseMathTree(parse_tree, inline) {
     var binaryOperators = generateMathBinaryOperators(inline);

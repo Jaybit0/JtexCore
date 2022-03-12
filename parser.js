@@ -1,5 +1,6 @@
-const {Tokenizer, Tokens, Token, LineBuffer, splitLinebreaks} = require("./tokenizer.js");
-const {ParserTokens, ParserToken} = require("./parser_tokens.js");
+const {splitLinebreaks} = require("./tokenizer.js");
+const {Tokens} = require("./constants.js");
+const {LineBuffer} = require("./util/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
 const {JtexCommand} = require("./commands/command.js");
 const {JtexCommandMathInline} = require("./commands/default/math.js");
@@ -48,14 +49,11 @@ class Parser {
             return;
         while (this.parseUseExpr(managedImports))
             continue;
-        console.log("Buffer:", buffer);
-        console.log("ManagedImports:", managedImports);
         for (var mImport of managedImports) {
             if (mImport.comments.length != 1)
                 buffer.appendMany(mImport.comments);
             buffer.appendNewLine("\\usepackage{" + mImport.package + "}");
         }
-        console.log("Buffer:", buffer);
     }
 
     parseUseExpr(managedImports) {

@@ -1,4 +1,4 @@
-const {Tokens} = require("../../tokenizer.js");
+const {Tokens} = require("../../constants.js");
 const {ParserError} = require("../../errors/parser_error.js");
 const {JtexCommand} = require("../command.js");
 const pUtils = require("../../util/parser_utils.js");

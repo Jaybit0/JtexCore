@@ -1,30 +1,4 @@
-const { stat } = require("fs");
-
-const Tokens = {
-    EOF: 0,
-    BACKSLASH: 1,
-    COMMENT: 2,
-    USE: 3,
-    VARNAME: 4,
-    ANY: 5,
-    EMPTY: 6,
-    PARENTHESIS_OPEN: 7,
-    PARENTHESIS_CLOSED: 8,
-    CURLY_BRACKET_OPEN: 9,
-    CURLY_BRACKET_CLOSED: 10,
-    SQUARE_BRACKET_OPEN: 11,
-    SQUARE_BRACKET_CLOSED: 12,
-    SEMICOLON: 13,
-    DOUBLE_DASH: 14,
-    COMMA: 15,
-    WHITESPACE: 16,
-    BLOCK_COMMENT: 17,
-    LATEX_COMMAND: 18,
-    SLASH: 19,
-    STAR: 20,
-    ROOF: 21,
-    DOUBLE_SLASH: 22
-};
+const {Tokens} = require("./constants.js");
 
 class Tokenizer {
     constructor(input) {
@@ -190,43 +164,6 @@ class State {
                 this.col++;
             }
         }
-    }
-}
-
-class LineBuffer {
-    constructor(buffer = [""]) {
-        this.lineBuffer = buffer;
-    }
-
-    append(str) {
-        this.lineBuffer[this.lineBuffer.length-1] += str;
-        return this;
-    }
-
-    appendNewLine(str) {
-        this.lineBuffer.push(str);
-        return this;
-    }
-
-    appendMany(str) {
-        if (str.length == 0)
-            return this;
-        this.lineBuffer[this.lineBuffer.length-1] += str[0];
-        for (var i = 1; i < str.length; i++) {
-            this.lineBuffer.push(str[i])
-        }
-        return this;
-    }
-
-    appendManyNewLine(str) {
-        if (str.length == 0)
-            return this;
-        this.lineBuffer.push(...str);
-        return this;
-    }
-
-    toString(splitter) {
-        return this.lineBuffer.join(splitter);
     }
 }
 
@@ -512,8 +449,6 @@ function blockCommentClose1State(ch, state) {
 
 // EXPORTS
 
-exports.Tokens = Tokens;
 exports.Token = Token;
 exports.Tokenizer = Tokenizer;
-exports.LineBuffer = LineBuffer;
 exports.splitLinebreaks = splitLinebreaks;
