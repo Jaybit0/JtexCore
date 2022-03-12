@@ -1,10 +1,11 @@
-const {Tokenizer, splitLinebreaks} = require("./tokenizer.js");
+const {Tokenizer} = require("./tokenizer.js");
 const {Tokens} = require("./constants.js");
-const {LineBuffer} = require("./util/line_buffer.js");
+const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
 const {JtexCommand} = require("./commands/command.js");
 const {JtexCommandMathInline} = require("./commands/default/math.js");
-const pUtils = require("./util/parser_utils.js");
+const pUtils = require("./utils/parser_utils.js");
+const stringUtils = require("./utils/string_utils.js");
 
 class Parser {
     /**
@@ -88,7 +89,7 @@ class Parser {
             throw new ParserError("A package name was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
         var mImport = {
             package: this.tokenizer.current.data,
-            comments: splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
+            comments: stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
         };
         managedImports.push(mImport);
         while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
@@ -98,7 +99,7 @@ class Parser {
                 return false;
             mImport = {
                 package: this.tokenizer.current.data,
-                comments: splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
+                comments: stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
             };
             managedImports.push(mImport);
         }
@@ -113,7 +114,7 @@ class Parser {
         while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
-                var lb = splitLinebreaks(res);
+                var lb = stringUtils.splitLinebreaks(res);
                 buffer.appendMany(lb);
                 var bufferActive = this.tokenizer.isTokenBufferActive();
                 this.tokenizer.activateTokenBuffer(false);
@@ -121,7 +122,7 @@ class Parser {
                 this.tokenizer.activateTokenBuffer(bufferActive);
             }
         }
-        buffer.appendMany(splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
+        buffer.appendMany(stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
     /**

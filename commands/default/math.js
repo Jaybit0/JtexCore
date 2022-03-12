@@ -1,7 +1,7 @@
 const {Tokens} = require("../../constants.js");
 const {ParserError} = require("../../errors/parser_error.js");
 const {JtexCommand} = require("../command.js");
-const pUtils = require("../../util/parser_utils.js");
+const pUtils = require("../../utils/parser_utils.js");
 
 class JtexCommandMathInline extends JtexCommand {
     constructor() {
@@ -9,12 +9,22 @@ class JtexCommandMathInline extends JtexCommand {
     }
 }
 
+/**
+ * Parses the Jtex-command default.math.inline
+ * @param {LineBuffer} buffer a line buffer
+ * @param {ParserContext} ctx the parser context
+ */
 function parseJtexMathInline(buffer, ctx) {
+    // Checks if the command is within another default.math.inline command. Could also be removed.
     if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
         throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
+    
     var bracketCount = 0;
     var dataTree = {data: [], parent: null};
     var current = dataTree;
+
+    // Continue while the statement is not closed via ';'. 
+    //All brackets must be closed, otherwise ';' will be interpreted as a string.
     while (ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments()) {
         if (ctx.parser.parseJtexCommand(buffer, ctx))
             continue;
@@ -32,12 +42,20 @@ function parseJtexMathInline(buffer, ctx) {
             current.data.push(ctx.parser.tokenizer.current);
         }
     }
+
+    // Checks if all brackets have been closed
+    // Otherwise, the parser cannot continue
     if (bracketCount != 0)
         throw new ParserError("Bracket error").init(this.tokenizer.current);
-    // Traverse through tree-node elements to check for parseable objects
+
+    // Wrap the whole tree to be able to use pUtils.parseMathTree without concatenating a token-list
     var wrapperTree = {data: [dataTree], parent: null};
     dataTree.parent = wrapperTree;
+
+    // Traverse through tree-node elements to check for parseable objects
     var mtree = pUtils.parseMathTree(wrapperTree, true)[0];
+
+    // Write the LaTeX inline math-format to the line buffer
     buffer.append("$" + mtree.unwrap().toString() + "$");
 }
 

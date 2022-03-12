@@ -28,6 +28,7 @@ function parseMathTree(parse_tree, inline) {
     return parse_stack;
 }
 
+// TODO: Handle differently
 // Param: inline: if it is an inline expression
 function generateMathBinaryOperators(inline) {
     var dict = {};
@@ -61,6 +62,7 @@ function tokenizeSubstring(str, refToken) {
     return tokens;
 }
 
+// TODO: Outsource all operators to another file
 // BINARY OPERATORS: take two tokens, return one token
 
 function binaryOperatorFrac(op1, op2) {
