@@ -1,12 +1,12 @@
 # Jtex converter
 
-The Jtex-converter is a javascript converter to enhance the workflow of writing LaTex-code. While you are able to write standard LaTex-code, the converter is able to convert high-level syntax elements to valid LaTex-code.
+The Jtex-converter is a javascript converter to enhance the workflow of writing LaTeX-code. While you are able to write standard LaTeX-code, the converter is able to convert high-level syntax elements to valid LaTeX-code.
 
 ## Headers
 
 ### Use
 
-With the use-header, you are able to easily import LaTex packages. Thus, the expression
+With the use-header, you are able to easily import LaTeX packages. Thus, the expression
 
 ```
 \usepackage{amsmath}
@@ -26,11 +26,11 @@ use amsmath
 use amssymb
 ```
 
-Note that this header is only recognized if it is the first element in the document. However, you are able to write comments that will be transferred to the output LaTex-document.
+Note that this header is only recognized if it is the first element in the document. However, you are able to write comments that will be transferred to the output LaTeX-document.
 
 ## Body
 
-The body contains the content that should be converted to LaTex-code. You are able to utilize any Syntax elements recognized in LaTex. Additionally, you are able to write [Jtex-commands](#commands).
+The body contains the content that should be converted to LaTeX-code. You are able to utilize any Syntax elements recognized in LaTeX. Additionally, you are able to write [Jtex-commands](#commands).
 
 ## Commands
 
@@ -44,7 +44,7 @@ Here, we will provide a list of basic commands provided by the converter:
 
 ## Math mode
 
-The Jtex math mode extends the LaTex math mode from `amsmath` by providing additional syntax elements.
+The Jtex math mode extends the LaTeX math mode from `amsmath` by providing additional syntax elements.
 
 ### Inline math mode
 
