@@ -38,7 +38,9 @@ Jtex-commands always start with the prefix `--`. If given command doesn't exist,
 
 Here, we will provide a list of basic commands provided by the converter:
 
-`-- `: Starts the [inline math-mode](#inline-math-mode) and is indicated by any whitespace character
+| Command | Description                                                                                   | Example   |
+| ------- | --------------------------------------------------------------------------------------------- | --------- |
+| `--\s`  | Starts the [inline math-mode](#inline-math-mode) and is indicated by any whitespace character | `-- 1/2;` |
 
 ## Math mode
 
