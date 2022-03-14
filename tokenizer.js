@@ -41,7 +41,6 @@ class Tokenizer {
             return this.current.id != Tokens.EOF;
         }
         this.current = parseNext(this.state);
-        console.log(this.current);
         if (this.tokenBufferActive && this.current.id != Tokens.EOF)
             this.tokenBuffer.push(this.current);
         return this.current.id != Tokens.EOF;

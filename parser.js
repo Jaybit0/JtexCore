@@ -6,6 +6,7 @@ const {JtexCommand} = require("./commands/command.js");
 const {JtexCommandMathInline} = require("./commands/default/math.js");
 const pUtils = require("./utils/parser_utils.js");
 const stringUtils = require("./utils/string_utils.js");
+const opLoader = require("./operators/operator_loader.js");
 
 class Parser {
     /**
@@ -14,8 +15,10 @@ class Parser {
      */
     constructor(tokenizer) {
         this.tokenizer = tokenizer;
-        this.commandList = {};
+        this.commandDict = {};
+        this.commandList = [];
         this.#initDefaultCommands();
+        this.injectOperators();
     }
 
     /**
@@ -31,8 +34,9 @@ class Parser {
      */
     initJtexCommand(command) {
         if (!(command.token_id in this.commandList))
-            this.commandList[command.token_id] = [];
-        this.commandList[command.token_id].push(command);
+            this.commandDict[command.token_id] = [];
+        this.commandDict[command.token_id].push(command);
+        this.commandList.push(command);
     }
 
     /**
@@ -41,7 +45,19 @@ class Parser {
      */
     removeJtexCommand(name) {
         for (var [key, val] of this.commandList.entries())
-            this.commandList[key] = val.filter(cmd => cmd.name == name);
+            this.commandList[key] = val.filter(cmd => cmd.name != name);
+        this.commandList = this.commandList.filter(cmd => cmd.name != name);
+    }
+
+    injectOperators() {
+        var ops = opLoader.loadOperators();
+        for (var cmd of this.commandList) {
+            for (var op of ops) {
+                if (op.commands.includes(cmd.name))
+                    cmd.injectOperator(op);
+            }
+        }
+        this.commandList.forEach(cmd => cmd.buildOperators());
     }
 
     /**
@@ -136,8 +152,8 @@ class Parser {
             return false;
         if (!this.tokenizer.next())
             throw new ParserError("A jtex-command was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
-        if (this.tokenizer.current.id in this.commandList) {
-            for (var cmd of this.commandList[this.tokenizer.current.id]) {
+        if (this.tokenizer.current.id in this.commandDict) {
+            for (var cmd of this.commandDict[this.tokenizer.current.id]) {
                 if (!cmd.checker(this.tokenizer.current))
                     continue;
                 ctx.push(cmd.name);
