@@ -7,6 +7,10 @@ class JtexCommandJs extends JtexCommand {
     constructor() {
         super("default.code.js", Tokens.VARNAME, tk => tk.data == "js" || tk.data == "javascript");
         this.init(this.parseJtexCodeJs);
+        this.scope = {
+            "ref": this,
+            "write": this.fWrite
+        };
     }
 
     parseJtexCodeJs(buffer, ctx) {
@@ -45,7 +49,23 @@ class JtexCommandJs extends JtexCommand {
         jsString = jsString.substring(0, jsString.length-1);
         ctx.parser.tokenizer.state.setHandler(() => {});
         ctx.parser.tokenizer.state.finalizeToken();
-        eval(jsString);
+        var dat = "";
+        for (var key of Object.keys(this.scope)) {
+            if (key != "ref")
+                dat += "const " + key + "=this."+key+".bind(this.ref);";
+        }
+        dat += "for (var member in this) delete this[member];";
+        this.buffer = buffer;
+        (function() { 
+            return eval('"use strict";' + dat + jsString); 
+        }).call(this.scope);
+        
+        this.buffer = null;
+    }
+
+    fWrite(...str) {
+        console.log(this);
+        this.buffer.appendMany(str);
     }
 }
 
