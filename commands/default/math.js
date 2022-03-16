@@ -46,7 +46,7 @@ class JtexCommandMathInline extends JtexCommand {
         // Checks if all brackets have been closed
         // Otherwise, the parser cannot continue
         if (bracketCount != 0)
-            throw new ParserError("Bracket error").init(this.tokenizer.current);
+            throw new ParserError("Bracket error").init(ctx.parser.tokenizer.current);
 
         // Wrap the whole tree to be able to use pUtils.parseMathTree without concatenating a token-list
         var wrapperTree = {data: [dataTree], parent: null};
@@ -60,4 +60,11 @@ class JtexCommandMathInline extends JtexCommand {
     }
 }
 
-exports.JtexCommandMathInline = JtexCommandMathInline;
+function generate() {
+    dat = [];
+    dat.push(new JtexCommandMathInline());
+    return dat;
+}
+
+//exports.JtexCommandMathInline = JtexCommandMathInline;
+exports.generate = generate;

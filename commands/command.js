@@ -21,6 +21,7 @@ class JtexCommand {
 
     init(handler) {
         this.handler = handler;
+        return this;
     }
 
     injectOperator(operator) {
