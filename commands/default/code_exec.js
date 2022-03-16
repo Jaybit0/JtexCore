@@ -58,13 +58,12 @@ class JtexCommandJs extends JtexCommand {
         this.buffer = buffer;
         (function() { 
             return eval('"use strict";' + dat + jsString); 
-        }).call(this.scope);
+        }).call(Object.assign({}, this.scope));
         
         this.buffer = null;
     }
 
     fWrite(...str) {
-        console.log(this);
         this.buffer.appendMany(str);
     }
 }
