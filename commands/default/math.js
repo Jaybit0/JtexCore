@@ -19,34 +19,9 @@ class JtexCommandMathInline extends JtexCommand {
         if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
             throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
         
-        var bracketCount = 0;
-        var dataTree = {data: [], parent: null};
-        var current = dataTree;
-
-        // Continue while the statement is not closed via ';'. 
-        //All brackets must be closed, otherwise ';' will be interpreted as a string.
-        while (ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments()) {
-            if (ctx.parser.parseJtexCommand(buffer, ctx))
-                continue;
-            if (ctx.parser.tokenizer.current.id == Tokens.PARENTHESIS_OPEN) {
-                bracketCount++;
-                var subTree = {data: [], parent: current};
-                current.data.push(subTree);
-                current = subTree;
-            } else if (ctx.parser.tokenizer.current.id == Tokens.PARENTHESIS_CLOSED) {
-                bracketCount--;
-                current = current.parent;
-            } else if (ctx.parser.tokenizer.current.id == Tokens.SEMICOLON && bracketCount == 0) {
-                break;
-            } else {
-                current.data.push(ctx.parser.tokenizer.current);
-            }
-        }
-
-        // Checks if all brackets have been closed
-        // Otherwise, the parser cannot continue
-        if (bracketCount != 0)
-            throw new ParserError("Bracket error").init(ctx.parser.tokenizer.current);
+        var allowedBrackets = {};
+        allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
+        var dataTree = pUtils.buildBracketTree(buffer, ctx, tk => tk.id == Tokens.SEMICOLON, true, allowedBrackets);
 
         // Wrap the whole tree to be able to use pUtils.parseMathTree without concatenating a token-list
         var wrapperTree = {data: [dataTree], parent: null};
@@ -66,5 +41,4 @@ function generate() {
     return dat;
 }
 
-//exports.JtexCommandMathInline = JtexCommandMathInline;
 exports.generate = generate;
