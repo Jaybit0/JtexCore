@@ -29,6 +29,7 @@ class Parser {
         var commands = cmdLoader.loadCommands();
         for (var cmd of commands)
             this.initJtexCommand(cmd); 
+        console.log(commands)
     }
 
     /**
@@ -36,7 +37,7 @@ class Parser {
      * @param { [JtexCommand] } command the Jtex-command
      */
     initJtexCommand(command) {
-        if (!(command.token_id in this.commandList))
+        if (!(command.token_id in this.commandDict))
             this.commandDict[command.token_id] = [];
         this.commandDict[command.token_id].push(command);
         this.commandList.push(command);
