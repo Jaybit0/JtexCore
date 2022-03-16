@@ -35,9 +35,50 @@ class JtexCommandMathInline extends JtexCommand {
     }
 }
 
+class JtexCommandMathBlock extends JtexCommand {
+    constructor() {
+        super("default.math.block", Tokens.VARNAME, tk => tk.data == "math" || tk.data == "m");
+        this.init(this.parseJtexMathBlock);
+    }
+
+    parseJtexMathBlock(buffer, ctx) {
+        // Checks if the command is within another default.math.inline command. Could also be removed.
+        if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
+            throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
+
+        
+        var allowedBrackets = {};
+        allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
+        if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)
+            throw new ParserError("Expected curly bracket after command.").init(ctx.parser.tokenizer.current);
+        var dataTree = pUtils.buildBracketTree(buffer, ctx, tk => tk.id == Tokens.CURLY_BRACKET_CLOSED, true, allowedBrackets);
+
+        var mathComponents = [[]];
+        for (var token of dataTree.data) {
+            if (token.id == Tokens.SEMICOLON)
+                mathComponents.push([]);
+            else
+                mathComponents[mathComponents.length-1].push(token);
+        }
+
+        var parsedComponents = [];
+        for (var component of mathComponents) {
+            var dataTree = {
+                data: component,
+                parent: null
+            };
+            var wrapperTree = {data: [dataTree], parent: null};
+            dataTree.parent = wrapperTree;
+            parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator)[0]);
+        }
+        buffer.append("\\begin{align}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{align}");
+    }
+}
+
 function generate() {
-    dat = [];
+    var dat = [];
     dat.push(new JtexCommandMathInline());
+    dat.push(new JtexCommandMathBlock());
     return dat;
 }
 

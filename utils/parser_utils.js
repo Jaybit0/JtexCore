@@ -13,7 +13,7 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
     var dataTree = {data: [], parent: null};
     var current = dataTree;
 
-    while (ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments()) {
+    while (ctx.parser.tokenizer.next()) {
         if (allowCommands && ctx.parser.parseJtexCommand(buffer, ctx))
             continue;
         if (ctx.parser.tokenizer.current.id in brackets) {
@@ -31,8 +31,10 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
             current.data.push(ctx.parser.tokenizer.current);
         }
 
-        if (bracketStack.length == 0 && endChecker(ctx.parser.tokenizer.current))
+        if (bracketStack.length == 0 && endChecker(ctx.parser.tokenizer.current)) {
+            current.data.pop();
             break;
+        }
     }
 
     return dataTree;
