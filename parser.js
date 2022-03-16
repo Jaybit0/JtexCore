@@ -29,7 +29,6 @@ class Parser {
         var commands = cmdLoader.loadCommands();
         for (var cmd of commands)
             this.initJtexCommand(cmd); 
-        console.log(commands)
     }
 
     /**
