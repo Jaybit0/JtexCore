@@ -36,14 +36,10 @@ Das ist ein Test 123öcoi382365&&)/;
     }
 }
 
-% -- M := matrix(1, 2, 3, 4, 5; 6, 7, 8, 9, 10; 11, 12, 13, 14, 15;);
-
-% -- M := matrix(3, 3, (1*i, 2*j));
-
-/*--m{
-    \text{Sei -- a:=2/3};}
+--js{
+    vars.x = "test";
 }
-Definiere --m m:=2/3+5/2;
---m{
-    1/3+(2+5)/2
-}*/
+
+--js{
+    console.log(vars);
+}

@@ -9,7 +9,8 @@ class JtexCommandJs extends JtexCommand {
         super("default.code.js", Tokens.VARNAME, tk => tk.data == "js" || tk.data == "javascript");
         this.init(this.parseJtexCodeJs);
         this.scope = {
-            "ref": this
+            "ref": this,
+            "vars": {}
         };
         this.loadDefaultFunctions();
     }
@@ -72,11 +73,18 @@ class JtexCommandJs extends JtexCommand {
             "cRefToken": refToken
         };
         for (var key of Object.keys(mScope)) {
-            if (key != "ref" && key != "ctx")
-                dat += "const " + key + "=this."+key+".bind(this.ctx);";
+            if (key == "ref" || key == "ctx")
+                continue;
+            if (typeof mScope[key] === "function") {
+                if (key != "ref" && key != "ctx")
+                    dat += "const " + key + "=this."+key+".bind(this.ctx);";
+            } else {
+                dat += "const " + key + "=this." + key + ";";
+            }
         }
         dat += "for (var member in this) delete this[member];";
         mScope.ctx.buffer = buffer;
+        mScope.ctx.vars = this.varStore;
         (function() { 
             return eval('"use strict";' + dat + jsString); 
         }).call(mScope);
