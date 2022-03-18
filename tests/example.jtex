@@ -4,15 +4,16 @@ to continue with the bla
 */
 use amsmath, test
 
-\test123{}
+\test{}
 
 Das ist ein Test 123öcoi382365&&)/;
 -- a:=(2+(5 * 7)^(5-3/2)-3)/(3+2);
+-- g(x/y);
 
 -- V := 0//(1 x)2dx;
 
 --m{
-    test hallo du?;
+    x/y;
     Lul
 }
 
