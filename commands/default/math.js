@@ -15,9 +15,11 @@ class JtexCommandMathInline extends JtexCommand {
      * @param {ParserContext} ctx the parser context
      */
     parseJtexMathInline(buffer, ctx) {
+        // TODO:
         // Checks if the command is within another default.math.inline command. Could also be removed.
-        if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
+        /*if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
             throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
+        */
         
         var allowedBrackets = {};
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
@@ -42,10 +44,11 @@ class JtexCommandMathBlock extends JtexCommand {
     }
 
     parseJtexMathBlock(buffer, ctx) {
+        // TODO:
         // Checks if the command is within another default.math.inline command. Could also be removed.
-        if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
-            throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
-
+        /*if (ctx.ctx.filter(cmd => cmd == "default.math.block").length > 1)
+            throw new ParserError("Cannot run default.math.block within another default.math.block command").init(ctx.parser.tokenizer.current);
+        */
         
         var allowedBrackets = {};
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;

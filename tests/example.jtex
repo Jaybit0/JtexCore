@@ -3,6 +3,8 @@ import all packages
 to continue with the bla
 */
 use amsmath, test
+% use language.german
+% use default
 
 \test{}
 
@@ -13,9 +15,11 @@ Das ist ein Test 123öcoi382365&&)/;
 -- V := 0//(1 x)2dx;
 
 --m{
-    x/y;
+    x/y as test;
     Lul
 }
+
+Referenz auf @test
 
 --js{
     write("Hello there!");
@@ -44,3 +48,26 @@ Das ist ein Test 123öcoi382365&&)/;
 --js{
     console.log(vars);
 }
+
+/*
+--m{
+    x + y mark test =>
+
+}
+
+--m{
+    @test 
+}
+
+--m.align(+, -, *, / , --,){
+
+}
+
+--m{
+    x + y = z || test -- \cup; ;
+}
+
+--m{
+    (x + y)^_
+}
+*/
