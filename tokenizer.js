@@ -406,6 +406,14 @@ function initialState(ch, state) {
             state.incPtr();
             state.token = new Token(Tokens.ROOF).init(state);
             return false;
+        case "=":
+            state.incPtr()
+            state.setHandler(equalsState);
+            return true;
+        case "<":
+            state.incPtr();
+            state.setHandler(lessThanState);
+            return true;
     }
     if (checkVarname(ch)) {
         state.incPtr();
@@ -563,6 +571,36 @@ function blockCommentClose1State(ch, state) {
     }
     state.setHandler(blockCommentState);
     return true;
+}
+
+function equalsState(ch, state) {
+    if (state.isEof() || (ch != ">")) {
+        state.token = new Token(Tokens.EQUALS).init(state);
+        return false;
+    } 
+    state.incPtr();
+    state.token = new Token(Tokens.EQUALS_GREATER_THAN).init(state);
+    return false
+}
+
+function lessThanState(ch, state) {
+    if (state.isEof() || (ch != "=")) {
+        state.token = new Token(Tokens.ANY).init(state)
+        return false
+    }
+    state.incPtr()
+    state.setHandler(lessThanEqualsState);
+    return true;
+}
+
+function lessThanEqualsState(ch, state) {
+    if (state.isEof() || (ch != ">")) {
+        state.token = new Token(Tokens.LESS_THAN_EQUALS).init(state);
+        return false
+    }
+    state.incPtr()
+    state.token = new Token(Tokens.LESS_THAN_EQUALS_GREATER_THAN).init(state);
+    return false;
 }
 
 // EXPORTS
