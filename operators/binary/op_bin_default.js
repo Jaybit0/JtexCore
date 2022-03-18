@@ -3,10 +3,18 @@ const { Operator, OperatorType } = require("../operator");
 const {ParserToken} = require("../../parser_token");
 
 function generate() {
-    var opFrac = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.FRACTION, binaryOperatorFrac).injectToCommand("default.math.inline");
-    var opMul = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.MULTIPLY, binaryOperatorMul).injectToCommand("default.math.inline");
-    var opPow = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.POWER, binaryOperatorPow).injectToCommand("default.math.inline");
-    var opIntegral = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.INTEGRAL, binaryOperatorIntegral).injectToCommand("default.math.inline");
+    var opFrac = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.FRACTION, binaryOperatorFrac)
+        .injectToCommand("default.math.inline")
+        .injectToCommand("default.math.block");
+    var opMul = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.MULTIPLY, binaryOperatorMul)
+        .injectToCommand("default.math.inline")
+        .injectToCommand("default.math.block");
+    var opPow = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.POWER, binaryOperatorPow)
+        .injectToCommand("default.math.inline")
+        .injectToCommand("default.math.block");
+    var opIntegral = new Operator(OperatorType.BINARY_OPERATOR, ParserTokens.INTEGRAL, binaryOperatorIntegral)
+        .injectToCommand("default.math.inline")
+        .injectToCommand("default.math.block");
     return [opFrac, opMul, opPow, opIntegral];
 }
 
