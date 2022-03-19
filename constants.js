@@ -34,7 +34,9 @@ const ParserTokens = {
     MULTIPLY: 2,
     POWER: 3,
     INTEGRAL: 4,
-    IMPLIES: 5
+    IMPLIES: 5,
+    IMPLIED_BY: 6,
+    IFF: 7
 };
 
 exports.Tokens = Tokens;
