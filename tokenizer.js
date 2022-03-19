@@ -68,9 +68,21 @@ class Tokenizer {
      * @returns whether the next token is not EOF
      */
     nextIgnoreWhitespacesAndComments() {
-        while (this.next() && (this.current.id == Tokens.WHITESPACE || this.current.id == Tokens.COMMENT || this.current.id == Tokens.BLOCK_COMMENT))
+        while (this.next() && this.currentTokenWhitespaceOrComment())
             continue;
         return this.current.id != Tokens.EOF;
+    }
+
+    /**
+     * 
+     * @returns whether the next Token is a Whitespace, Comment or Block_Comment
+     */
+    currentTokenWhitespaceOrComment() {
+        return (
+            this.current.id == Tokens.WHITESPACE ||
+            this.current.id == Tokens.COMMENT ||
+            this.current.id == Tokens.BLOCK_COMMENT
+        )
     }
 
     /**

@@ -130,7 +130,9 @@ class Parser {
      * @param {LineBuffer} buffer a LineBuffer 
      */
     parseMain(buffer) {
-        while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
+        if (this.tokenizer.currentTokenWhitespaceOrComment())
+            nextIgnoreWhitespacesAndComments()
+        do {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
                 var lb = stringUtils.splitLinebreaks(res);
@@ -140,7 +142,7 @@ class Parser {
                 this.parseJtexCommand(buffer);
                 this.tokenizer.activateTokenBuffer(bufferActive);
             }
-        }
+        } while (this.tokenizer.nextIgnoreWhitespacesAndComments())
         buffer.appendMany(stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
