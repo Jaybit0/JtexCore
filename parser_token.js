@@ -52,8 +52,8 @@ class ParserToken {
         var before = "";
         var after = "";
         for (var i = 0; i < this.wraps; i++) {
-            before += "(";
-            after += ")";
+            before += "\\left(";
+            after += "\\right)";
         }
         return before + this.data + after;
     }
