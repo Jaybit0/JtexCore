@@ -1,4 +1,4 @@
-const {Tokenizer} = require("./tokenizer.js");
+const {Tokenizer, Token} = require("./tokenizer.js");
 const {Tokens} = require("./constants.js");
 const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
@@ -174,7 +174,12 @@ class Parser {
                 return true;
             }
         }
-        // TODO: interpret token as string
+        //Else interpret Command as String-Token to Escape Operator
+        ctx.parser.tokenizer.queueToken(
+            new Token(Tokens.ANY)
+            .initFrom(ctx.parser.tokenizer.current)
+            .withData(ctx.parser.tokenizer.current.data)
+        )
         return true;
     }
 }
