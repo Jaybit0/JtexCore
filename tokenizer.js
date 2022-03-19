@@ -426,6 +426,10 @@ function initialState(ch, state) {
             state.incPtr();
             state.setHandler(lessThanState);
             return true;
+        case "_":
+            state.incPtr()
+            state.token = new Token(Tokens.UNDERSCORE).init(state);
+            return false;
     }
     if (checkVarname(ch)) {
         state.incPtr();

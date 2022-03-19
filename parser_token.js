@@ -30,6 +30,9 @@ class ParserToken {
             case Tokens.LESS_THAN_EQUALS_GREATER_THAN:
                 this.id = ParserTokens.IFF;
                 return this;
+            case Tokens.UNDERSCORE:
+                this.id = ParserTokens.SUBSCRIPT;
+                return this;
             default:
                 this.id = ParserTokens.STRING;
                 return this;
