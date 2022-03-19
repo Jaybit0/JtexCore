@@ -21,6 +21,9 @@ class ParserToken {
             case Tokens.DOUBLE_SLASH:
                 this.id = ParserTokens.INTEGRAL;
                 return this;
+            case Tokens.EQUALS_GREATER_THAN:
+                this.id = ParserTokens.IMPLIES;
+                return this;
             default:
                 this.id = ParserTokens.STRING;
                 return this;

@@ -40,7 +40,7 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
     return dataTree;
 }
 
-function parseMathTree(parse_tree, inline, binaryOperators) {
+function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
     var preprocessed_parse_tree = [];
     var parse_stack = [];
 
@@ -49,7 +49,7 @@ function parseMathTree(parse_tree, inline, binaryOperators) {
         if (parse_tree.data[i] instanceof Token) {
             preprocessed_parse_tree.push(new ParserToken(-1).fromLexerToken(parse_tree.data[i]));
         } else {
-            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators);
+            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, singleOperators);
             var data = parsed.map(tk => tk.toString()).join("")
             preprocessed_parse_tree.push(new ParserToken(ParserTokens.STRING).withData(data).at(parsed[0].beginToken, parsed[parsed.length-1].endToken).wrap());
         }
@@ -59,6 +59,8 @@ function parseMathTree(parse_tree, inline, binaryOperators) {
     for (var i = 0; i < preprocessed_parse_tree.length; i++) {
         if (binaryOperators(preprocessed_parse_tree, parse_stack, i)) {
             i++;
+        } else if (singleOperators(preprocessed_parse_tree, parse_stack, i)) {
+            continue;
         } else {
             parse_stack.push(preprocessed_parse_tree[i]);
         }

@@ -7,6 +7,8 @@ function generate() {
     return [opImplies]
 }
 
-function singleOperatorImplies() { //What to pass?
-    
+function singleOperatorImplies() { 
+    return new ParserToken(ParserTokens.STRING).withData("\\implies");
 }
+
+exports.generate = generate
