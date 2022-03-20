@@ -19,11 +19,23 @@ class JtexCommand {
         this.singleOperator = null;
     }
 
+    /**
+     * Initializes the command with a given handler-function.
+     * This function will be called when this command appears in the input-file.
+     * @param {function(LineBuffer, ParserContext): void} handler 
+     * @returns this instance
+     */
     init(handler) {
         this.handler = handler;
         return this;
     }
 
+    /**
+     * Injects a new operator to the command.
+     * Note that operators will only be handled if their support was implemented 
+     * in the individual handler-function.
+     * @param {Operator} operator the operator
+     */
     injectOperator(operator) {
         switch (operator.type) {
             case OperatorType.BINARY_OPERATOR:
@@ -38,11 +50,19 @@ class JtexCommand {
         }
     }
 
+    /**
+     * Builds all operators. When the operator-list changed, this function
+     * should be called again.
+     */
     buildOperators() {
         this.binaryOperator = this.buildBinaryOperators();
         this.singleOperator = this.buildSingleOperators();
     }
 
+    /**
+     * Builds the handler-function for binary operators.
+     * @returns the operator-handler-function
+     */
     buildBinaryOperators() {
         var dict = {};
         for (var op of this.binaryOperators) {
@@ -64,6 +84,10 @@ class JtexCommand {
         };
     }
 
+    /**
+     * Builds the handler-function for single operators.
+     * @returns the operator-handler-function
+     */
     buildSingleOperators() {
         var dict = {};
         for (var op of this.singleOperators) {

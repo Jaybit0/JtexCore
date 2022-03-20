@@ -29,7 +29,6 @@ class JtexCommandMathInline extends JtexCommand {
         var wrapperTree = {data: [dataTree], parent: null};
         dataTree.parent = wrapperTree;
 
-        // Traverse through tree-node elements to check for parseable objects
         var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0];
 
         // Write the LaTeX inline math-format to the line buffer
@@ -43,6 +42,11 @@ class JtexCommandMathBlock extends JtexCommand {
         this.init(this.parseJtexMathBlock);
     }
 
+    /**
+     * Parses the Jtex-command default.math.block
+     * @param {LineBuffer} buffer a line buffer
+     * @param {ParserContext} ctx the parser context
+     */
     parseJtexMathBlock(buffer, ctx) {
         // TODO:
         // Checks if the command is within another default.math.inline command. Could also be removed.
@@ -78,6 +82,11 @@ class JtexCommandMathBlock extends JtexCommand {
     }
 }
 
+/**
+ * Generates all commands implemented in this file.
+ * This function is required for the command_loader to recognize the module and should not be called manually.
+ * @returns the list of commands
+ */
 function generate() {
     var dat = [];
     dat.push(new JtexCommandMathInline());

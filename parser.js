@@ -3,7 +3,6 @@ const {Tokens} = require("./constants.js");
 const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
 const {JtexCommand} = require("./commands/command.js");
-const {JtexCommandMathInline} = require("./commands/default/math.js");
 const pUtils = require("./utils/parser_utils.js");
 const stringUtils = require("./utils/string_utils.js");
 const cmdLoader = require("./commands/command_loader.js");
@@ -52,6 +51,9 @@ class Parser {
         this.commandList = this.commandList.filter(cmd => cmd.name != name);
     }
 
+    /**
+     * Injects the operators to their declared target-commands.
+     */
     injectOperators() {
         var ops = opLoader.loadOperators();
         for (var cmd of this.commandList) {

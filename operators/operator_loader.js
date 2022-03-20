@@ -3,6 +3,10 @@ const fUtils = require("../utils/file_utils.js");
 
 const locations = ["./operators/binary", "./operators/single"];
 
+/**
+ * Dynamically loads all operators from all directories / subdirectories specified in 'locations'
+ * @returns a list of operators
+ */
 function loadOperators() {
     operatorGenerators = [];
     for (var loc of locations) {

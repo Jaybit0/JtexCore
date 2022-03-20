@@ -8,6 +8,15 @@ defaultBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
 defaultBrackets[Tokens.CURLY_BRACKET_OPEN] = Tokens.CURLY_BRACKET_CLOSED;
 defaultBrackets[Tokens.SQUARE_BRACKET_OPEN] = Tokens.SQUARE_BRACKET_CLOSED;
 
+/**
+ * Builds a tree-structure from the next tokens.
+ * @param {LineBuffer} buffer a line buffer 
+ * @param {ParserContext} ctx the parser context 
+ * @param {function(Token): boolean} endChecker a function that checks whether the current token indicates the end of the tree
+ * @param {boolean} allowCommands whether commands should be interpreted
+ * @param {any} brackets a map of opening and closing brackets (example: {'(': ')'})
+ * @returns the bracket-tree of the form {'data': [token1, tree-node, token2, ...], 'parent': parent-tree-node}
+ */
 function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, brackets = defaultBrackets) {
     var bracketStack = [];
     var dataTree = {data: [], parent: null};
@@ -40,6 +49,14 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
     return dataTree;
 }
 
+/**
+ * 
+ * @param {any} parse_tree the parsed tree as it is returned from the function 'buildBracketTree'
+ * @param {boolean} inline whether the math-mode is inline
+ * @param {function(any, Token[], int): boolean} binaryOperators the binary-operator handler-function
+ * @param {function(any, Token[], int): boolean} singleOperators the single-operator handler-function
+ * @returns an array of output-tokens
+ */
 function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
     var preprocessed_parse_tree = [];
     var parse_stack = [];
@@ -68,6 +85,12 @@ function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
     return parse_stack;
 }
 
+/**
+ * Tokenizes a string using the Jtex-tokenizer.
+ * @param {string} str the string to be tokenized
+ * @param {Token} refToken a reference-token to keep track of positions in the actual input-file
+ * @returns a token-list
+ */
 function tokenizeSubstring(str, refToken) {
     var tokenizer = new Tokenizer(str);
     tokenizer.activateTokenBuffer(false);

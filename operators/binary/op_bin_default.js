@@ -28,8 +28,8 @@ function generate() {
 
 /**
  * Converts '<op1>/<op2>' to '\\frac{<op1>}{<op2>}'.
- * @param {Token} op1 the left operand
- * @param {Token} op2 the right operand
+ * @param {ParserToken} op1 the left operand
+ * @param {ParserToken} op2 the right operand
  * @returns a parser token
  */
 function binaryOperatorFrac(op1, op2) {
@@ -38,8 +38,8 @@ function binaryOperatorFrac(op1, op2) {
 
 /**
  * Converts '<op1>*<op2>' to '<op1>\\cdot{}<op2>'.
- * @param {Token} op1 the left operand
- * @param {Token} op2 the right operand
+ * @param {ParserToken} op1 the left operand
+ * @param {ParserToken} op2 the right operand
  * @returns a parser token
  */
 function binaryOperatorMul(op1, op2) {
@@ -48,8 +48,8 @@ function binaryOperatorMul(op1, op2) {
 
 /**
  * Converts '<op1>^<op2>' to '{<op1>}^{<op2>}'.
- * @param {Token} op1 the left operand
- * @param {Token} op2 the right operand
+ * @param {ParserToken} op1 the left operand
+ * @param {ParserToken} op2 the right operand
  * @returns a parser token
  */
 function binaryOperatorPow(op1, op2) {
@@ -60,8 +60,8 @@ function binaryOperatorPow(op1, op2) {
 
 /**
  * Converts '<op1>//<op2>' to '\\int_{<op1>}^{<op2>}'.
- * @param {Token} op1 the left operand
- * @param {Token} op2 the right operand
+ * @param {ParserToken} op1 the left operand
+ * @param {ParserToken} op2 the right operand
  * @returns a parser token
  */
 function binaryOperatorIntegral(op1, op2) {
@@ -70,8 +70,8 @@ function binaryOperatorIntegral(op1, op2) {
 
 /**
  * Converts '<op1>_<op2>' to '{<op1>}_{<op2>}'.
- * @param {Token} op1 the left operand
- * @param {Token} op2 the right operand
+ * @param {ParserToken} op1 the left operand
+ * @param {ParserToken} op2 the right operand
  * @returns a parser token
  */
 function binaryOperatorSubscript(op1, op2) {
