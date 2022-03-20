@@ -1,4 +1,4 @@
-const {Tokenizer} = require("./tokenizer.js");
+const {Tokenizer, Token} = require("./tokenizer.js");
 const {Tokens} = require("./constants.js");
 const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
@@ -130,7 +130,9 @@ class Parser {
      * @param {LineBuffer} buffer a LineBuffer 
      */
     parseMain(buffer) {
-        while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
+        if (this.tokenizer.currentTokenWhitespaceOrComment())
+            nextIgnoreWhitespacesAndComments()
+        do {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
                 var lb = stringUtils.splitLinebreaks(res);
@@ -140,7 +142,7 @@ class Parser {
                 this.parseJtexCommand(buffer);
                 this.tokenizer.activateTokenBuffer(bufferActive);
             }
-        }
+        } while (this.tokenizer.nextIgnoreWhitespacesAndComments())
         buffer.appendMany(stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer()));
     }
 
@@ -172,7 +174,12 @@ class Parser {
                 return true;
             }
         }
-        // TODO: interpret token as string
+        //Else interpret Command as String-Token to Escape Operator
+        ctx.parser.tokenizer.queueToken(
+            new Token(Tokens.ANY)
+            .initFrom(ctx.parser.tokenizer.current)
+            .withData(ctx.parser.tokenizer.current.data)
+        )
         return true;
     }
 }

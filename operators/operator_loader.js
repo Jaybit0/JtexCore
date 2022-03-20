@@ -1,7 +1,7 @@
 const fs = require("fs");
 const fUtils = require("../utils/file_utils.js");
 
-const locations = ["./operators/binary"];
+const locations = ["./operators/binary", "./operators/single"];
 
 function loadOperators() {
     operatorGenerators = [];

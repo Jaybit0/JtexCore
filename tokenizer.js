@@ -68,9 +68,21 @@ class Tokenizer {
      * @returns whether the next token is not EOF
      */
     nextIgnoreWhitespacesAndComments() {
-        while (this.next() && (this.current.id == Tokens.WHITESPACE || this.current.id == Tokens.COMMENT || this.current.id == Tokens.BLOCK_COMMENT))
+        while (this.next() && this.currentTokenWhitespaceOrComment())
             continue;
         return this.current.id != Tokens.EOF;
+    }
+
+    /**
+     * 
+     * @returns whether the next Token is a Whitespace, Comment or Block_Comment
+     */
+    currentTokenWhitespaceOrComment() {
+        return (
+            this.current.id == Tokens.WHITESPACE ||
+            this.current.id == Tokens.COMMENT ||
+            this.current.id == Tokens.BLOCK_COMMENT
+        )
     }
 
     /**
@@ -406,6 +418,18 @@ function initialState(ch, state) {
             state.incPtr();
             state.token = new Token(Tokens.ROOF).init(state);
             return false;
+        case "=":
+            state.incPtr()
+            state.setHandler(equalsState);
+            return true;
+        case "<":
+            state.incPtr();
+            state.setHandler(lessThanState);
+            return true;
+        case "_":
+            state.incPtr()
+            state.token = new Token(Tokens.UNDERSCORE).init(state);
+            return false;
     }
     if (checkVarname(ch)) {
         state.incPtr();
@@ -563,6 +587,36 @@ function blockCommentClose1State(ch, state) {
     }
     state.setHandler(blockCommentState);
     return true;
+}
+
+function equalsState(ch, state) {
+    if (state.isEof() || (ch != ">")) {
+        state.token = new Token(Tokens.EQUALS).init(state);
+        return false;
+    } 
+    state.incPtr();
+    state.token = new Token(Tokens.EQUALS_GREATER_THAN).init(state);
+    return false
+}
+
+function lessThanState(ch, state) {
+    if (state.isEof() || (ch != "=")) {
+        state.token = new Token(Tokens.ANY).init(state)
+        return false
+    }
+    state.incPtr()
+    state.setHandler(lessThanEqualsState);
+    return true;
+}
+
+function lessThanEqualsState(ch, state) {
+    if (state.isEof() || (ch != ">")) {
+        state.token = new Token(Tokens.LESS_THAN_EQUALS).init(state);
+        return false
+    }
+    state.incPtr()
+    state.token = new Token(Tokens.LESS_THAN_EQUALS_GREATER_THAN).init(state);
+    return false;
 }
 
 // EXPORTS

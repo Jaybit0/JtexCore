@@ -40,6 +40,7 @@ class JtexCommand {
 
     buildOperators() {
         this.binaryOperator = this.buildBinaryOperators();
+        this.singleOperator = this.buildSingleOperators();
     }
 
     buildBinaryOperators() {
@@ -61,6 +62,25 @@ class JtexCommand {
             }
             return false;
         };
+    }
+
+    buildSingleOperators() {
+        var dict = {};
+        for (var op of this.singleOperators) {
+            dict[op.tokenId] = op.handler;
+        }
+        return (parse_tree, parse_stack, ptr) => {
+            if (parse_tree.length < ptr)
+                return false;
+            if (!(parse_tree[ptr].id in dict))
+                return false;
+            var result = dict[parse_tree[ptr].id]();
+            if (result != null) {
+                parse_stack.push(result);
+                return true;
+            }
+            return false;
+        }
     }
 }
 

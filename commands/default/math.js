@@ -30,7 +30,7 @@ class JtexCommandMathInline extends JtexCommand {
         dataTree.parent = wrapperTree;
 
         // Traverse through tree-node elements to check for parseable objects
-        var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator)[0];
+        var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0];
 
         // Write the LaTeX inline math-format to the line buffer
         buffer.append("$" + mtree.unwrap().toString() + "$");
@@ -72,7 +72,7 @@ class JtexCommandMathBlock extends JtexCommand {
             };
             var wrapperTree = {data: [dataTree], parent: null};
             dataTree.parent = wrapperTree;
-            parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator)[0]);
+            parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0]);
         }
         buffer.append("\\begin{align}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{align}");
     }
