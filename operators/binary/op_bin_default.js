@@ -58,12 +58,24 @@ function binaryOperatorPow(op1, op2) {
     return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.unwrap().toString() + "}^{" + op2.unwrap().toString() + "}");
 }
 
+/**
+ * Converts '<op1>//<op2>' to '\\int_{<op1>}^{<op2>}'.
+ * @param {Token} op1 the left operand
+ * @param {Token} op2 the right operand
+ * @returns a parser token
+ */
 function binaryOperatorIntegral(op1, op2) {
     return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("\\int_{" + op1.unwrap().toString() + "}^{" + op2.unwrap().toString() + "}");
 }
 
+/**
+ * Converts '<op1>_<op2>' to '{<op1>}_{<op2>}'.
+ * @param {Token} op1 the left operand
+ * @param {Token} op2 the right operand
+ * @returns a parser token
+ */
 function binaryOperatorSubscript(op1, op2) {
-    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.toString() + "_{" + op2.unwrap().toString() + "}");
+    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.toString() + "}_{" + op2.unwrap().toString() + "}");
 }
 
 exports.generate = generate;
