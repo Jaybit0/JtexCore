@@ -75,7 +75,7 @@ function binaryOperatorIntegral(op1, op2) {
  * @returns a parser token
  */
 function binaryOperatorSubscript(op1, op2) {
-    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.toString() + "}_{" + op2.unwrap().toString() + "}");
+    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.unwrap().toString() + "}_{" + op2.unwrap().toString() + "}");
 }
 
 exports.generate = generate;
