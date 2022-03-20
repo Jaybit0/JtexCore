@@ -15,9 +15,11 @@ class JtexCommandMathInline extends JtexCommand {
      * @param {ParserContext} ctx the parser context
      */
     parseJtexMathInline(buffer, ctx) {
+        // TODO:
         // Checks if the command is within another default.math.inline command. Could also be removed.
-        if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
+        /*if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
             throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
+        */
         
         var allowedBrackets = {};
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
@@ -28,7 +30,7 @@ class JtexCommandMathInline extends JtexCommand {
         dataTree.parent = wrapperTree;
 
         // Traverse through tree-node elements to check for parseable objects
-        var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator)[0];
+        var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0];
 
         // Write the LaTeX inline math-format to the line buffer
         buffer.append("$" + mtree.unwrap().toString() + "$");
@@ -42,10 +44,11 @@ class JtexCommandMathBlock extends JtexCommand {
     }
 
     parseJtexMathBlock(buffer, ctx) {
+        // TODO:
         // Checks if the command is within another default.math.inline command. Could also be removed.
-        if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
-            throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
-
+        /*if (ctx.ctx.filter(cmd => cmd == "default.math.block").length > 1)
+            throw new ParserError("Cannot run default.math.block within another default.math.block command").init(ctx.parser.tokenizer.current);
+        */
         
         var allowedBrackets = {};
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
@@ -69,7 +72,7 @@ class JtexCommandMathBlock extends JtexCommand {
             };
             var wrapperTree = {data: [dataTree], parent: null};
             dataTree.parent = wrapperTree;
-            parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator)[0]);
+            parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0]);
         }
         buffer.append("\\begin{align}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{align}");
     }

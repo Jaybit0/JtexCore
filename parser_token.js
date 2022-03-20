@@ -21,6 +21,18 @@ class ParserToken {
             case Tokens.DOUBLE_SLASH:
                 this.id = ParserTokens.INTEGRAL;
                 return this;
+            case Tokens.EQUALS_GREATER_THAN:
+                this.id = ParserTokens.IMPLIES;
+                return this;
+            case Tokens.LESS_THAN_EQUALS:
+                this.id = ParserTokens.IMPLIED_BY;
+                return this;
+            case Tokens.LESS_THAN_EQUALS_GREATER_THAN:
+                this.id = ParserTokens.IFF;
+                return this;
+            case Tokens.UNDERSCORE:
+                this.id = ParserTokens.SUBSCRIPT;
+                return this;
             default:
                 this.id = ParserTokens.STRING;
                 return this;
@@ -52,8 +64,8 @@ class ParserToken {
         var before = "";
         var after = "";
         for (var i = 0; i < this.wraps; i++) {
-            before += "(";
-            after += ")";
+            before += "\\left(";
+            after += "\\right)";
         }
         return before + this.data + after;
     }

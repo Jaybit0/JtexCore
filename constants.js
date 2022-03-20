@@ -21,7 +21,12 @@ const Tokens = {
     SLASH: 19,
     STAR: 20,
     ROOF: 21,
-    DOUBLE_SLASH: 22
+    DOUBLE_SLASH: 22,
+    EQUALS: 23,
+    EQUALS_GREATER_THAN: 24,
+    LESS_THAN_EQUALS: 25,
+    LESS_THAN_EQUALS_GREATER_THAN: 26,
+    UNDERSCORE: 27
 };
 
 const ParserTokens = {
@@ -29,7 +34,11 @@ const ParserTokens = {
     FRACTION: 1,
     MULTIPLY: 2,
     POWER: 3,
-    INTEGRAL: 4
+    INTEGRAL: 4,
+    IMPLIES: 5,
+    IMPLIED_BY: 6,
+    IFF: 7, 
+    SUBSCRIPT: 8
 };
 
 exports.Tokens = Tokens;
