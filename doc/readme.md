@@ -64,19 +64,21 @@ Note that `;` is used to indicate the end of the inline math mode. However, `;` 
 
 ### Symbols
 
-(TODO)
-
-| Symbol | Description | Example  | Output         |
-| ------ | ----------- | -------- | -------------- |
-| `=>`   | Implication | `x => y` | `x \implies y` |
+| Symbol | Description | Example   | Output             |
+| ------ | ----------- | --------- | ------------------ |
+| `=>`   | Implication | `x => y`  | `x \implies{} y`   |
+| `<=`   | Implied by  | `x <= y`  | `x \impliedby{} y` |
+| `<=>`  | Equivalence | `x <=> y` | `x \iff{} y`       |
 
 ### Binary operators
 
 | Operator | Description | Example     | Output          |
 | -------- | ----------- | ----------- | --------------- |
 | `/`      | Fraction    | `1/(2+3)`   | `\frac{1}{2+3}` |
-| `*`      | Product     | `1*2`       | `1 \cdot 2`     |
-| `^`      | Power       | `2^(3+4)`   | `2^{3+4}`       |
+| `*`      | Product     | `1*2`       | `1\cdot{}2`     |
+| `^`      | Power       | `2^(3+4)`   | `{2}^{3+4}`     |
+| `^-`     | Overline    | `x^-`       | `\overline{x}`  |
+| `_`      | Subscript   | `x_(2n)`    | `{x}_{2n}`      |
 | `//`     | Integral    | `(0)//(10)` | `\int_{0}^{10}` |
 
 ## Comments
