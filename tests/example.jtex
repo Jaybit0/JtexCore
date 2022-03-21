@@ -6,6 +6,8 @@ to continue with the bla
 
 \test{}
 
+blabla
+
 --js{
     vars.printtest = (() => {for (var i = 0; i < 10; i++) write("test\n");});
 }
