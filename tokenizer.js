@@ -536,7 +536,7 @@ function varnameState(ch, state) {
 
 function dashState(ch, state) {
     if (state.isEof() || ch != "-") {
-        state.token = new Token(Tokens.ANY).init(state);
+        state.token = new Token(Tokens.DASH).init(state);
         return false;
     }
     state.incPtr();

@@ -1,7 +1,6 @@
 const {Tokens} = require("../../constants.js");
 const {ParserError} = require("../../errors/parser_error.js");
 const {JtexCommand} = require("../command.js");
-const pUtils = require("../../utils/parser_utils.js");
 const fUtils = require("../../utils/file_utils.js")
 
 class JtexCommandJs extends JtexCommand {
