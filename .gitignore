@@ -1,3 +1,3 @@
 # Test data files
-tests/*.jtex
-tests/*.tex
+/tests/*.jtex
+/tests/*.tex
