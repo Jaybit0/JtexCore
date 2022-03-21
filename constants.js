@@ -26,7 +26,8 @@ const Tokens = {
     EQUALS_GREATER_THAN: 24,
     LESS_THAN_EQUALS: 25,
     LESS_THAN_EQUALS_GREATER_THAN: 26,
-    UNDERSCORE: 27
+    UNDERSCORE: 27,
+    DASH: 28
 };
 
 const ParserTokens = {

@@ -1,11 +1,20 @@
 const {Tokens, ParserTokens} = require("./constants.js");
 
 class ParserToken {
+    /**
+     * 
+     * @param {int} id the token-id 
+     */
     constructor(id) {
         this.id = id;
         this.wraps = 0;
     }
 
+    /**
+     * Automatically initializes the parser-token from a lexer-token.
+     * @param {Token} token the lexer-token
+     * @returns this instance
+     */
     fromLexerToken(token) {
         this.withData(token.data).at(token, token);
         switch (token.id) {
@@ -39,27 +48,50 @@ class ParserToken {
         }
     }
 
+    /**
+     * Sets the data of the token
+     * @param {string} data 
+     * @returns this instance
+     */
     withData(data) {
         this.data = data;
         return this;
     }
 
+    /**
+     * Sets a range of tokens to accurately keep track of the token location and size in the actual input-file
+     * @param {Token} beginToken the beginning lexer-token
+     * @param {Token} endToken the ending lexer-token
+     * @returns this instance
+     */
     at(beginToken, endToken) {
         this.beginToken = beginToken;
         this.endToken = endToken;
         return this;
     }
 
+    /**
+     * Wraps the token in parenthesis
+     * @returns this instance
+     */
     wrap() {
         this.wraps++;
         return this;
     }
 
+    /**
+     * Unwraps one layer of parentheses if available
+     * @returns this instance
+     */
     unwrap() {
         this.wraps = this.wraps == 0 ? 0 : this.wraps-1;
         return this;
     }
 
+    /**
+     * Converts the token to a string with respect to the parentheses
+     * @returns the token as a string
+     */
     toString() {
         var before = "";
         var after = "";

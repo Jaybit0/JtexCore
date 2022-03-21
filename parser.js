@@ -3,7 +3,6 @@ const {Tokens} = require("./constants.js");
 const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
 const {JtexCommand} = require("./commands/command.js");
-const {JtexCommandMathInline} = require("./commands/default/math.js");
 const pUtils = require("./utils/parser_utils.js");
 const stringUtils = require("./utils/string_utils.js");
 const cmdLoader = require("./commands/command_loader.js");
@@ -52,6 +51,9 @@ class Parser {
         this.commandList = this.commandList.filter(cmd => cmd.name != name);
     }
 
+    /**
+     * Injects the operators to their declared target-commands.
+     */
     injectOperators() {
         var ops = opLoader.loadOperators();
         for (var cmd of this.commandList) {
@@ -71,58 +73,8 @@ class Parser {
     parse(lineBreak = "\r\n") {
         var buffer = new LineBuffer();
         this.tokenizer.activateTokenBuffer(true);
-        this.parseUse(buffer);
-        this.tokenizer.activateTokenBuffer(true);
         this.parseMain(buffer);
         return buffer.toString(lineBreak);
-    }
-
-    /**
-     * Parses the use-header.
-     * @param {LineBuffer} buffer a line buffer to write the output to 
-     */
-    parseUse(buffer) {
-        var managedImports = [];
-        if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
-            return;
-        while (this.parseUseExpr(managedImports))
-            continue;
-        for (var mImport of managedImports) {
-            if (mImport.comments.length != 1)
-                buffer.appendMany(mImport.comments);
-            buffer.appendNewLine("\\usepackage{" + mImport.package + "}");
-        }
-    }
-
-    /**
-     * 
-     * @param {Array<Object>} managedImports 
-     * @returns {boolean} whether the next use-expression could be parsed
-     */
-    parseUseExpr(managedImports) {
-        if (this.tokenizer.current.id != Tokens.USE)
-            return false;
-        if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
-            return false;
-        if (this.tokenizer.current.id != Tokens.VARNAME)
-            throw new ParserError("A package name was expected. Given: " + this.tokenizer.current.data).init(this.tokenizer.current);
-        var mImport = {
-            package: this.tokenizer.current.data,
-            comments: stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
-        };
-        managedImports.push(mImport);
-        while (this.tokenizer.nextIgnoreWhitespacesAndComments()) {
-            if (this.tokenizer.current.id != Tokens.COMMA)
-                break;
-            if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
-                return false;
-            mImport = {
-                package: this.tokenizer.current.data,
-                comments: stringUtils.splitLinebreaks(this.tokenizer.resolveTokenBuffer(0, x => (x.id == Tokens.COMMENT || x.id == Tokens.BLOCK_COMMENT)))
-            };
-            managedImports.push(mImport);
-        }
-        return true;
     }
 
     /**
@@ -130,8 +82,8 @@ class Parser {
      * @param {LineBuffer} buffer a LineBuffer 
      */
     parseMain(buffer) {
-        if (this.tokenizer.currentTokenWhitespaceOrComment())
-            nextIgnoreWhitespacesAndComments()
+        if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
+            return;
         do {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
@@ -174,7 +126,7 @@ class Parser {
                 return true;
             }
         }
-        //Else interpret Command as String-Token to Escape Operator
+        // otherwise interpret the command as string-token to escape operator
         ctx.parser.tokenizer.queueToken(
             new Token(Tokens.ANY)
             .initFrom(ctx.parser.tokenizer.current)
@@ -193,6 +145,18 @@ class ParserContext {
     constructor(parser, ctx = []) {
         this.parser = parser;
         this.ctx = ctx;
+        this.vars = {};
+    }
+
+    /**
+     * Retrieves a certain context-store.
+     * @param {string} name the name of the context-store 
+     * @returns the corresponding context-store
+     */
+    getContextStore(name) {
+        if (!(name in this.vars))
+            this.vars[name] = {};
+        return this.vars[name];
     }
 
     /**
