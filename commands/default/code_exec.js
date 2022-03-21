@@ -22,7 +22,7 @@ class JtexCommandJs extends JtexCommand {
     loadDefaultFunctions() {
         for (var f of fUtils.getFiles("./code_exec_functions")) {
             try {
-                for (var [key, val] of Object.entries(require("..\\..\\" + f).generate()))
+                for (var [key, val] of Object.entries(require(f).generate()))
                     this.scope[key] = val;
             } catch (err) {
                 console.error("Could not load default functions from file:", f);

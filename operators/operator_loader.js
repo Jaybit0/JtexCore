@@ -12,7 +12,7 @@ function loadOperators() {
     for (var loc of locations) {
         for (var f of fUtils.getFiles(loc)) {
             try {
-                operatorGenerators.push(...require("..\\" + f).generate());
+                operatorGenerators.push(...require(f).generate());
             } catch (err) {
                 console.error("Could not load operators from file:", f);
                 console.error(err);

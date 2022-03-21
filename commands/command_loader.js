@@ -12,7 +12,7 @@ function loadCommands() {
     for (var loc of locations) {
         for (var f of fUtils.getFiles(loc)) {
             try {
-                commands.push(...require("..\\" + f).generate());
+                commands.push(...require(f).generate());
             } catch (err) {
                 console.error("Could not load commands from file:", f);
                 console.error(err);
