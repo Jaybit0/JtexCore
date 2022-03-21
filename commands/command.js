@@ -66,7 +66,10 @@ class JtexCommand {
     buildBinaryOperators() {
         var dict = {};
         for (var op of this.binaryOperators) {
-            dict[op.tokenId] = op.handler;
+            if (op.tokenId in dict)
+                dict[op.tokenId].push(op)
+            else
+                dict[op.tokenId] = [op];
         }
         return (parse_tree, parse_stack, ptr) => {
             if (ptr == 0 || parse_tree.length <= ptr)
@@ -75,7 +78,13 @@ class JtexCommand {
                 return false;
             var op1 = parse_stack.pop();
             var op2 = parse_tree[ptr+1];
-            var result = dict[parse_tree[ptr].id](op1, op2);
+            var result = null;
+            for (var operator of dict[parse_tree[ptr].id]) {
+                if (operator.checker(parse_tree[ptr], [op1, op2])) {
+                    result = operator.handler(op1, op2);
+                    break;
+                }
+            }
             if (result != null) {
                 parse_stack.push(result);
                 return true;
@@ -91,14 +100,23 @@ class JtexCommand {
     buildSingleOperators() {
         var dict = {};
         for (var op of this.singleOperators) {
-            dict[op.tokenId] = op.handler;
+            if (op.tokenId in dict)
+                dict[op.tokenId].push(op)
+            else
+                dict[op.tokenId] = [op];
         }
         return (parse_tree, parse_stack, ptr) => {
             if (parse_tree.length < ptr)
                 return false;
             if (!(parse_tree[ptr].id in dict))
                 return false;
-            var result = dict[parse_tree[ptr].id]();
+                var result = null;
+                for (var operator of dict[parse_tree[ptr].id]) {
+                    if (operator.checker(parse_tree[ptr], [])) {
+                        result = operator.handler();
+                        break;
+                    }
+                }
             if (result != null) {
                 parse_stack.push(result);
                 return true;

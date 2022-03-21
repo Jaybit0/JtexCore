@@ -16,6 +16,17 @@ class Operator {
         this.tokenId = tokenId;
         this.commands = [];
         this.handler = handler;
+        this.checker = (tk, ops) => true;
+    }
+
+    /**
+     * Sets a checker function.
+     * @param {function(Token, Token[]): boolean} checker a function that determines whether the token actually represents the operator
+     * @returns this instance
+     */
+    withChecker(checker) {
+        this.checker = checker;
+        return this;
     }
 
     /**
