@@ -339,8 +339,10 @@ function checkWhitespace(ch) {
  * @param {string} ch the character to check 
  * @returns whether the character is an allowed symbol in the varname
  */
-function checkVarname(ch) {
-    return (/[a-zA-Z]/).test(ch);
+function checkVarname(ch, start=false) {
+    if (start)
+        return (/[a-zA-Z]/).test(ch);
+    return (/[a-zA-Z0-9]/).test(ch);
 }
 
 /**
@@ -431,7 +433,7 @@ function initialState(ch, state) {
             state.token = new Token(Tokens.UNDERSCORE).init(state);
             return false;
     }
-    if (checkVarname(ch)) {
+    if (checkVarname(ch, true)) {
         state.incPtr();
         state.setHandler(varnameState);
         return true;
