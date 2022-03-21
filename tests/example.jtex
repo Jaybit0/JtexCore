@@ -2,16 +2,12 @@
 import all packages
 to continue with the bla
 */
---use amsmath, test
-% use language.german
-% use default
-
+--use default
 
 \test{}
 
 --js{
     vars.printtest = (() => {for (var i = 0; i < 10; i++) write("test\n");});
-    console.log(vars)
 }
 
 Das ist ein Test 123öcoi382365&&/;
