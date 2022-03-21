@@ -145,6 +145,18 @@ class ParserContext {
     constructor(parser, ctx = []) {
         this.parser = parser;
         this.ctx = ctx;
+        this.vars = {};
+    }
+
+    /**
+     * Retrieves a certain context-store.
+     * @param {string} name the name of the context-store 
+     * @returns the corresponding context-store
+     */
+    getContextStore(name) {
+        if (!(name in this.vars))
+            this.vars[name] = {};
+        return this.vars[name];
     }
 
     /**
