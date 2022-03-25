@@ -421,7 +421,7 @@ function initialState(ch, state) {
             state.token = new Token(Tokens.ROOF).init(state);
             return false;
         case "=":
-            state.incPtr()
+            state.incPtr();
             state.setHandler(equalsState);
             return true;
         case "<":
@@ -429,9 +429,13 @@ function initialState(ch, state) {
             state.setHandler(lessThanState);
             return true;
         case "_":
-            state.incPtr()
+            state.incPtr();
             state.token = new Token(Tokens.UNDERSCORE).init(state);
             return false;
+        case ".":
+            state.incPtr();
+            state.setHandler(dotState);
+            return true;
     }
     if (checkVarname(ch, true)) {
         state.incPtr();
@@ -618,6 +622,26 @@ function lessThanEqualsState(ch, state) {
     }
     state.incPtr()
     state.token = new Token(Tokens.LESS_THAN_EQUALS_GREATER_THAN).init(state);
+    return false;
+}
+
+function dotState(ch, state) {
+    if (state.isEof() || (ch != ".")) {
+        state.token = new Token(Tokens.DOT).init(state);
+        return false;
+    }
+    state.incPtr();
+    state.setHandler(doubleDotState);
+    return true;
+}
+
+function doubleDotState(ch, state) {
+    if (state.isEof() || (ch != ".")) {
+        state.token = new Token(Tokens.DOT).init(state);
+        return false;
+    }
+    state.incPtr();
+    state.token = new Token(Tokens.TRIPLE_DOT).init(state);
     return false;
 }
 
