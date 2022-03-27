@@ -13,12 +13,17 @@ class JtexCommandUse extends JtexCommand {
      * Parses a Jtex-use command.
      * @param {LineBuffer} buffer a line buffer
      * @param {ParserContext} ctx the parser context
-     * @param {object[]} params a list of optional parameters
+     * @param {ParameterList} params a list of optional parameters
      */
     parseJtexUse(buffer, ctx, params) {
         if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments())
             throw new ParserError("Expected a package-name after command.").init(ctx.parser.tokenizer.current);
         
+        var optionals = "";
+        console.log(params.getParams())
+        for (var optional of params.getParams())
+            optionals += "[" + optional.param.data + "]";
+
         var packages = [];
         for (var next = this.resolvePackageName(ctx); next != null; next = this.nextPackage(ctx)) {
             if (next == "default")
@@ -26,7 +31,7 @@ class JtexCommandUse extends JtexCommand {
             else
                 packages.push(next);
         }
-        buffer.appendNewLine("\\usepackage{" + packages.join(", ") + "}");
+        buffer.appendNewLine("\\usepackage" + optionals + "{" + packages.join(", ") + "}");
     }
 
     /**

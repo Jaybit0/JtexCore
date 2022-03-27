@@ -40,7 +40,7 @@ class JtexCommandMathBlock extends JtexCommand {
      * Parses the Jtex-command default.math.block
      * @param {LineBuffer} buffer a line buffer
      * @param {ParserContext} ctx the parser context
-     * @param {object[]} params a list of optional parameters
+     * @param {ParameterList} params a list of optional parameters
      */
     parseJtexMathBlock(buffer, ctx, params) {
         var allowedBrackets = {};

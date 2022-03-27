@@ -3,6 +3,7 @@ const {Tokens} = require("./constants.js");
 const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
 const {JtexCommand} = require("./commands/command.js");
+const {ParameterList} = require("./commands/parameter_list.js");
 const pUtils = require("./utils/parser_utils.js");
 const stringUtils = require("./utils/string_utils.js");
 const cmdLoader = require("./commands/command_loader.js");
@@ -114,12 +115,12 @@ class Parser {
                 if (!cmd.checker(this.tokenizer.current))
                     continue;
                 ctx.push(cmd.name);
-                var cmdArgs = pUtils.parseOptionalParameters(buffer, ctx, true);
+                var cmdParams = new ParameterList(pUtils.parseOptionalParameters(buffer, ctx, true));
                 if (ctx.ctx.length == 1) {
-                    cmd.handler(buffer, ctx, cmdArgs);
+                    cmd.handler(buffer, ctx, cmdParams);
                 } else {
                     var mBuffer = new LineBuffer();
-                    cmd.handler(mBuffer, ctx, cmdArgs);
+                    cmd.handler(mBuffer, ctx, cmdParams);
                     var tokens = pUtils.tokenizeSubstring(mBuffer.toString(), this.tokenizer.current);
                     this.tokenizer.queueTokens(tokens);
                 }

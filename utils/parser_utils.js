@@ -132,8 +132,9 @@ function parseOptionalParameter(buffer, ctx, allowCommands=true) {
     }
     if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.VARNAME) 
         throw new ParserError("Expected optional parameter after dot.").init(ctx.parser.tokenizer.current);
+    var param = ctx.parser.tokenizer.current;
     var tuple = parseTuple(buffer, ctx, allowCommands);
-    return {"param": ctx.parser.tokenizer.current, "args": tuple == null ? [] : tuple};
+    return {"param": param, "args": tuple == null ? [] : tuple};
 }
 
 /**
