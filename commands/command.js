@@ -3,9 +3,9 @@ const {OperatorType} = require("../operators/operator.js");
 class JtexCommand {
     /**
      * 
+     * @param { string } name the name of the command
      * @param { [int] } token_id the id of the command-token after '--'
      * @param { [function(ParserToken): boolean] } checker a checker function to determine if the token represents the command
-     * @param { [function(LineBuffer, ParserToken, Parser): void] } handler a handler function to convert the command to a string
      */
     constructor(name, token_id, checker) {
         this.name = name;
@@ -22,7 +22,7 @@ class JtexCommand {
     /**
      * Initializes the command with a given handler-function.
      * This function will be called when this command appears in the input-file.
-     * @param {function(LineBuffer, ParserContext): void} handler 
+     * @param {function(LineBuffer, ParserContext, object[]): void} handler a handler function
      * @returns this instance
      */
     init(handler) {

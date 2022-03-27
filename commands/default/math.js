@@ -14,13 +14,7 @@ class JtexCommandMathInline extends JtexCommand {
      * @param {LineBuffer} buffer a line buffer
      * @param {ParserContext} ctx the parser context
      */
-    parseJtexMathInline(buffer, ctx) {
-        // TODO:
-        // Checks if the command is within another default.math.inline command. Could also be removed.
-        /*if (ctx.ctx.filter(cmd => cmd == "default.math.inline").length > 1)
-            throw new ParserError("Cannot run default.math.inline within another default.math.inline command").init(ctx.parser.tokenizer.current);
-        */
-        
+    parseJtexMathInline(buffer, ctx, args) {
         var allowedBrackets = {};
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
         var dataTree = pUtils.buildBracketTree(buffer, ctx, tk => tk.id == Tokens.SEMICOLON, true, allowedBrackets);
@@ -46,14 +40,9 @@ class JtexCommandMathBlock extends JtexCommand {
      * Parses the Jtex-command default.math.block
      * @param {LineBuffer} buffer a line buffer
      * @param {ParserContext} ctx the parser context
+     * @param {object[]} params a list of optional parameters
      */
-    parseJtexMathBlock(buffer, ctx) {
-        // TODO:
-        // Checks if the command is within another default.math.inline command. Could also be removed.
-        /*if (ctx.ctx.filter(cmd => cmd == "default.math.block").length > 1)
-            throw new ParserError("Cannot run default.math.block within another default.math.block command").init(ctx.parser.tokenizer.current);
-        */
-        
+    parseJtexMathBlock(buffer, ctx, params) {
         var allowedBrackets = {};
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
         if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)

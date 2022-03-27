@@ -101,6 +101,87 @@ function tokenizeSubstring(str, refToken) {
     return tokens;
 }
 
+/**
+ * Parses many optional parameters.
+ * @param {LineBuffer} buffer a line-buffer
+ * @param {ParserContext} ctx the parser-context
+ * @param {boolean} allowCommands whether the argument-tuples should execute commands within their bodies
+ * @returns a list of parsed optional parameters
+ */
+function parseOptionalParameters(buffer, ctx, allowCommands=true) {
+    var params = [];
+    for (var param = parseOptionalParameter(buffer, ctx, allowCommands); param != null; param = parseOptionalParameter(buffer, ctx, allowCommands)) {
+        params.push(param);
+    }
+    return params;
+}
+
+/**
+ * Parses an optional parameter if available. 
+ * If no optional parameter is available, the
+ * tokenizer-state will be restored to the next token.
+ * @param {LineBuffer} buffer a line-buffer
+ * @param {ParserContext} ctx the parser-context
+ * @param {boolean} allowCommands whether the argument-tuple should execute commands within its body
+ * @returns the parsed optional parameter or null if not available
+ */
+function parseOptionalParameter(buffer, ctx, allowCommands=true) {
+    if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.DOT) {
+        ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
+        return null;
+    }
+    if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.VARNAME) 
+        throw new ParserError("Expected optional parameter after dot.").init(ctx.parser.tokenizer.current);
+    var tuple = parseTuple(buffer, ctx, allowCommands);
+    return {"param": ctx.parser.tokenizer.current, "args": tuple == null ? [] : tuple};
+}
+
+/**
+ * Parses a tuple.
+ * @param {LineBuffer} buffer a line-buffer
+ * @param {ParserContext} ctx the parser-context
+ * @param {boolean} allowCommands whether the tuple should execute commands within its body
+ * @returns the parsed tuple or null if not available
+ */
+function parseTuple(buffer, ctx, allowCommands=true) {
+    if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.PARENTHESIS_OPEN) {
+        ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
+        return null;
+    }
+    //ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
+    var brackets = {};
+    brackets[Tokens.PARENTHESIS_OPEN] = brackets[Tokens.PARENTHESIS_CLOSED];
+    var tree = buildBracketTree(buffer, ctx, tk => tk.id == Tokens.PARENTHESIS_CLOSED, allowCommands, brackets);
+    return _parseTupleFromTree(tree);
+}
+
+/**
+ * Parses a tuple from a bracket-tree created by buildBracketTree.
+ * @param {object} tree the bracket-tree
+ * @returns the resolved tuple
+ */
+function _parseTupleFromTree(tree) {
+    var mData = [];
+    var mCurElement = [];
+    for (var i = 0; i < tree.data.length; i++) {
+        if (tree.data[i] instanceof Token) {
+            if (tree.data[i].id == Tokens.COMMA) {
+                mData.push(mCurElement);
+                mCurElement = [];
+            } else {
+                mCurElement.push(tree.data[i]);
+            }
+        } else {
+            mCurElement.push(_parseTupleFromTree(tree.data[i]));
+        }
+    }
+    mData.push(mCurElement);
+    return mData;
+}
+
 exports.buildBracketTree = buildBracketTree;
 exports.parseMathTree = parseMathTree;
 exports.tokenizeSubstring = tokenizeSubstring;
+exports.parseOptionalParameters = parseOptionalParameters;
+exports.parseOptionalParameter = parseOptionalParameter;
+exports.parseTuple = parseTuple;

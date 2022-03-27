@@ -114,11 +114,12 @@ class Parser {
                 if (!cmd.checker(this.tokenizer.current))
                     continue;
                 ctx.push(cmd.name);
+                var cmdArgs = pUtils.parseOptionalParameters(buffer, ctx, true);
                 if (ctx.ctx.length == 1) {
-                    cmd.handler(buffer, ctx);
+                    cmd.handler(buffer, ctx, cmdArgs);
                 } else {
                     var mBuffer = new LineBuffer();
-                    cmd.handler(mBuffer, ctx);
+                    cmd.handler(mBuffer, ctx, cmdArgs);
                     var tokens = pUtils.tokenizeSubstring(mBuffer.toString(), this.tokenizer.current);
                     this.tokenizer.queueTokens(tokens);
                 }

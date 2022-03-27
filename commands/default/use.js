@@ -13,8 +13,9 @@ class JtexCommandUse extends JtexCommand {
      * Parses a Jtex-use command.
      * @param {LineBuffer} buffer a line buffer
      * @param {ParserContext} ctx the parser context
+     * @param {object[]} params a list of optional parameters
      */
-    parseJtexUse(buffer, ctx) {
+    parseJtexUse(buffer, ctx, params) {
         if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments())
             throw new ParserError("Expected a package-name after command.").init(ctx.parser.tokenizer.current);
         

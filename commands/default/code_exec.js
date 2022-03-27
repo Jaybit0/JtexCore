@@ -34,8 +34,9 @@ class JtexCommandJs extends JtexCommand {
      * Parses the javascript code-block.
      * @param {LineBuffer} buffer a line buffer
      * @param {ParserContext} ctx the parser context
+     * @param {object[]} params a list of optional parameters
      */
-    parseJtexCodeJs(buffer, ctx) {
+    parseJtexCodeJs(buffer, ctx, params) {
         if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)
             throw new ParserError("Expected curly bracket after command.").init(ctx.parser.tokenizer.current);
         var refToken = ctx.parser.tokenizer.current;
