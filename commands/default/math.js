@@ -47,7 +47,17 @@ class JtexCommandMathBlock extends JtexCommand {
         allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
         if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)
             throw new ParserError("Expected curly bracket after command.").init(ctx.parser.tokenizer.current);
-        var dataTree = pUtils.buildBracketTree(buffer, ctx, tk => tk.id == Tokens.CURLY_BRACKET_CLOSED, true, allowedBrackets);
+        var ctr = 0;
+        var checker = tk => {
+            if (tk.id == Tokens.CURLY_BRACKET_OPEN)
+                ctr++;
+            else if (tk.id == Tokens.CURLY_BRACKET_CLOSED)
+                ctr--;
+            if (ctr < 0)
+                return true;
+            return false;
+        };
+        var dataTree = pUtils.buildBracketTree(buffer, ctx, checker, true, allowedBrackets);
 
         var mathComponents = [[]];
         for (var token of dataTree.data) {

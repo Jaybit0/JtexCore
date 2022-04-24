@@ -2,7 +2,7 @@ const fs = require("fs");
 const {Tokenizer, Tokens, Token} = require("../tokenizer.js");
 const {Parser} = require("../parser.js");
 
-const content = fs.readFileSync("./tests/example.jtex").toString();
+const content = fs.readFileSync("./tests/coma1.jtex").toString();
 
 const startMillis = performance.now();
 
