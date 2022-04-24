@@ -77,7 +77,11 @@ class JtexCommandMathBlock extends JtexCommand {
             dataTree.parent = wrapperTree;
             parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0]);
         }
-        buffer.append("\\begin{align}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{align}");
+        var mode = params.getParam("mode");
+        var mmode = "align";
+        if (mode != null)
+            mmode = pUtils.stringify(mode.args[0]);
+        buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
     }
 }
 

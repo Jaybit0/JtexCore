@@ -157,6 +157,19 @@ function parseTuple(buffer, ctx, allowCommands=true) {
 }
 
 /**
+ * Stringifies a token-list.
+ * @param {Token[]} tokens 
+ * @returns 
+ */
+function stringify(tokens) {
+    var str = "";
+    for (var token of tokens) {
+        str += token.toString();
+    }
+    return str;
+}
+
+/**
  * Parses a tuple from a bracket-tree created by buildBracketTree.
  * @param {object} tree the bracket-tree
  * @returns the resolved tuple
@@ -186,3 +199,4 @@ exports.tokenizeSubstring = tokenizeSubstring;
 exports.parseOptionalParameters = parseOptionalParameters;
 exports.parseOptionalParameter = parseOptionalParameter;
 exports.parseTuple = parseTuple;
+exports.stringify = stringify;
