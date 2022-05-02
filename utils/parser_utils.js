@@ -74,9 +74,9 @@ function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
     
     // Evaluate operators
     for (var i = 0; i < preprocessed_parse_tree.length; i++) {
-        if (binaryOperators(preprocessed_parse_tree, parse_stack, i)) {
+        if (binaryOperators(preprocessed_parse_tree, parse_stack, i, (m) => {i+=m; return i;})) {
             i++;
-        } else if (singleOperators(preprocessed_parse_tree, parse_stack, i)) {
+        } else if (singleOperators(preprocessed_parse_tree, parse_stack, i, (m) => {i+=m; return i;})) {
             continue;
         } else {
             parse_stack.push(preprocessed_parse_tree[i]);

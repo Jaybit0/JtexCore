@@ -1,3 +1,4 @@
+const { Tokens } = require("../constants.js");
 const {OperatorType} = require("../operators/operator.js");
 
 class JtexCommand {
@@ -71,13 +72,43 @@ class JtexCommand {
             else
                 dict[op.tokenId] = [op];
         }
-        return (parse_tree, parse_stack, ptr) => {
+        return (parse_tree, parse_stack, ptr, incPtrFunc) => {
             if (ptr == 0 || parse_tree.length <= ptr)
                 return false;
             if (!(parse_tree[ptr].id in dict))
                 return false;
+
+            
             var op1 = parse_stack.pop();
-            var op2 = parse_tree[ptr+1];
+            var cachedOps = [op1];
+
+            // While the operator is a whitespace, we pop the next operator
+            while (op1.beginToken.id == Tokens.WHITESPACE) {
+                if (parse_stack.length == 0) {
+                    while (cachedOps.length > 0) {
+                        parse_stack.push(cachedOps.pop());
+                    }
+                    return false;
+                }
+                op1 = parse_stack.pop();
+                cachedOps.push(op1);
+            }
+            var mptr = ptr+1;
+            var op2 = parse_tree[mptr];
+
+            // While the operator is a whitespace, we move to the next operator
+            while (op2.beginToken.id == Tokens.WHITESPACE) {
+                mptr = incPtrFunc(1)+1;
+                if (parse_tree.length <= mptr) {
+                    while (cachedOps.length > 0) {
+                        parse_stack.push(cachedOps.pop());
+                    }
+                    incPtrFunc(ptr+1-mptr);
+                    return false;
+                }  
+                op2 = parse_tree[mptr];
+            }
+
             var result = null;
             for (var operator of dict[parse_tree[ptr].id]) {
                 if (operator.checker(parse_tree[ptr], [op1, op2])) {
@@ -110,7 +141,7 @@ class JtexCommand {
             else
                 dict[op.tokenId] = [op];
         }
-        return (parse_tree, parse_stack, ptr) => {
+        return (parse_tree, parse_stack, ptr, incPtrFunc) => {
             if (parse_tree.length < ptr)
                 return false;
             if (!(parse_tree[ptr].id in dict))
