@@ -43,7 +43,9 @@ function binaryOperatorFrac(op1, op2) {
  * @returns a parser token
  */
 function binaryOperatorMul(op1, op2) {
-    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.toString() + "\\cdot{}" + op2.toString());
+    return [new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.unwrap().toString()),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("\\cdot{}"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op2.unwrap().toString())];
 }
 
 /**
@@ -55,7 +57,11 @@ function binaryOperatorMul(op1, op2) {
 function binaryOperatorPow(op1, op2) {
     if (op2.beginToken.id == Tokens.UNDERSCORE && op2.beginToken == op2.endToken)
         return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("\\overline{" + op1.unwrap().toString() + "}");
-    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.unwrap().toString() + "}^{" + op2.unwrap().toString() + "}");
+    return [
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.toString() + "}"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("^"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op2.unwrap().toString() + "}")
+    ];
 }
 
 /**
@@ -75,7 +81,11 @@ function binaryOperatorIntegral(op1, op2) {
  * @returns a parser token
  */
 function binaryOperatorSubscript(op1, op2) {
-    return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.unwrap().toString() + "}_{" + op2.unwrap().toString() + "}");
+    return [
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.unwrap().toString() + "}"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("_"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op2.unwrap().toString() + "}")
+    ];
 }
 
 exports.generate = generate;

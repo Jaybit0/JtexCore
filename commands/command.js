@@ -86,8 +86,13 @@ class JtexCommand {
                 }
             }
             if (result != null) {
-                parse_stack.push(result);
-                return true;
+                if (Array.isArray(result)) {
+                    parse_stack.push(...result);
+                    return true;
+                } else {
+                    parse_stack.push(result);
+                    return true;
+                }
             }
             return false;
         };
@@ -118,8 +123,13 @@ class JtexCommand {
                     }
                 }
             if (result != null) {
-                parse_stack.push(result);
-                return true;
+                if (Array.isArray(result)) {
+                    parse_stack.push(...result);
+                    return true;
+                } else {
+                    parse_stack.push(result);
+                    return true;
+                }
             }
             return false;
         }
