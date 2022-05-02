@@ -42,6 +42,9 @@ class ParserToken {
             case Tokens.UNDERSCORE:
                 this.id = ParserTokens.SUBSCRIPT;
                 return this;
+            case Tokens.TRIPLE_DOT:
+                this.id = ParserTokens.TRIPLE_DOT;
+                return this;
             default:
                 this.id = ParserTokens.STRING;
                 return this;

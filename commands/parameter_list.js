@@ -12,20 +12,7 @@ class ParameterList {
      * @param {string} name the parameter-name 
      * @returns the requested parameter or null if not available
      */
-    getParam(name) {
-        for (var param of this.params) {
-            if (param.param == name)
-                return param;
-        }
-        return null;
-    }
-
-    /**
-     * Retrieves a certain parameter.
-     * @param {string} name the parameter-name 
-     * @returns the requested parameter or null if not available
-     */
-    getDefaultParam(name, defaultValue) {
+    getParam(name, defaultValue = null) {
         for (var param of this.params) {
             if (param.param == name)
                 return param;

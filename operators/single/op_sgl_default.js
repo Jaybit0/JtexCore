@@ -17,7 +17,10 @@ function generate() {
     var opIff = new Operator(OperatorType.SINGLE_OPERATOR, ParserTokens.IFF, singleOperatorIff)
     .injectToCommand("default.math.inline")
     .injectToCommand("default.math.block");
-    return [opImplies, opImpliedby, opIff]
+    var opTripleDot = new Operator(OperatorType.SINGLE_OPERATOR, ParserTokens.TRIPLE_DOT, singleOperatorTripleDot)
+    .injectToCommand("default.math.inline")
+    .injectToCommand("default.math.block");
+    return [opImplies, opImpliedby, opIff, opTripleDot]
 }
 
 /**
@@ -42,6 +45,14 @@ function singleOperatorImpliedBy() {
  */
 function singleOperatorIff() {
     return new ParserToken(ParserTokens.STRING).withData("\\iff{}");
+}
+
+/**
+ * Converts '...' to '\\ldots'.
+ * @returns a parser token
+ */
+ function singleOperatorTripleDot() {
+    return new ParserToken(ParserTokens.STRING).withData("\\ldots");
 }
 
 exports.generate = generate

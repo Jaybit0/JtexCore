@@ -41,7 +41,8 @@ const ParserTokens = {
     IMPLIES: 5,
     IMPLIED_BY: 6,
     IFF: 7, 
-    SUBSCRIPT: 8
+    SUBSCRIPT: 8,
+    TRIPLE_DOT: 9
 };
 
 exports.Tokens = Tokens;
