@@ -88,6 +88,7 @@ class JtexCommand {
                     while (cachedOps.length > 0) {
                         parse_stack.push(cachedOps.pop());
                     }
+                    incPtrFunc(-1);
                     return false;
                 }
                 op1 = parse_stack.pop();
