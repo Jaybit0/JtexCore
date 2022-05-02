@@ -343,7 +343,7 @@ function checkWhitespace(ch) {
  */
 function checkVarname(ch, start = false) {
   if (start) return /[a-zA-Z]/.test(ch);
-  return /[a-zA-Z0-9\\-]/.test(ch);
+  return /[a-zA-Z0-9]/.test(ch);
 }
 
 /**
