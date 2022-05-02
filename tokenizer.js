@@ -635,6 +635,8 @@ function dotState(ch, state) {
 
 function doubleDotState(ch, state) {
   if (state.isEof() || ch != ".") {
+    this.ptr--;
+    this.col--;
     state.token = new Token(Tokens.DOT).init(state);
     return false;
   }
