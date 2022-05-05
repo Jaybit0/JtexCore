@@ -82,7 +82,7 @@ function binaryOperatorIntegral(op1, op2) {
  */
 function binaryOperatorSubscript(op1, op2) {
     return [
-        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.unwrap().toString() + "}"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.toString()),
         new ParserToken(ParserTokens.STRING).at(op1, op2).withData("_"),
         new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op2.unwrap().toString() + "}")
     ];
