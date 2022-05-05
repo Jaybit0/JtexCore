@@ -43,9 +43,9 @@ function binaryOperatorFrac(op1, op2) {
  * @returns a parser token
  */
 function binaryOperatorMul(op1, op2) {
-    return [new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.unwrap().toString()),
+    return [new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.toString()),
         new ParserToken(ParserTokens.STRING).at(op1, op2).withData("\\cdot{}"),
-        new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op2.unwrap().toString())];
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op2.toString())];
 }
 
 /**
