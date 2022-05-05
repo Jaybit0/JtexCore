@@ -58,7 +58,7 @@ function binaryOperatorPow(op1, op2) {
     if (op2.beginToken.id == Tokens.UNDERSCORE && op2.beginToken == op2.endToken)
         return new ParserToken(ParserTokens.STRING).at(op1, op2).withData("\\overline{" + op1.unwrap().toString() + "}");
     return [
-        new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op1.toString() + "}"),
+        new ParserToken(ParserTokens.STRING).at(op1, op2).withData(op1.toString()),
         new ParserToken(ParserTokens.STRING).at(op1, op2).withData("^"),
         new ParserToken(ParserTokens.STRING).at(op1, op2).withData("{" + op2.unwrap().toString() + "}")
     ];
