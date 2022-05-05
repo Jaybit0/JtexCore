@@ -78,7 +78,7 @@ class JtexCommandMathBlock extends JtexCommand {
             parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0]);
         }
         var mode = params.getParam("mode");
-        var mmode = "align";
+        var mmode = "align*";
         if (mode != null)
             mmode = pUtils.stringify(mode.args[0]);
         buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
