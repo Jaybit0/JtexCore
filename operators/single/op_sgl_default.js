@@ -20,7 +20,16 @@ function generate() {
     var opTripleDot = new Operator(OperatorType.SINGLE_OPERATOR, ParserTokens.TRIPLE_DOT, singleOperatorTripleDot)
     .injectToCommand("default.math.inline")
     .injectToCommand("default.math.block");
-    return [opImplies, opImpliedby, opIff, opTripleDot]
+    var opColon = new Operator(OperatorType.SINGLE_OPERATOR, ParserTokens.COLON, singleOperatorColon)
+    .injectToCommand("default.math.inline")
+    .injectToCommand("default.math.block");
+    var opColonEqq = new Operator(OperatorType.SINGLE_OPERATOR, ParserTokens.COLON_EQUALS, singleOperatorColonEqq)
+    .injectToCommand("default.math.inline")
+    .injectToCommand("default.math.block");
+    var opEqqColon = new Operator(OperatorType.SINGLE_OPERATOR, ParserTokens.EQUALS_COLON, singleOperatorEqqColon)
+    .injectToCommand("default.math.inline")
+    .injectToCommand("default.math.block");
+    return [opImplies, opImpliedby, opIff, opTripleDot, opColon, opColonEqq, opEqqColon]
 }
 
 /**
@@ -48,11 +57,35 @@ function singleOperatorIff() {
 }
 
 /**
- * Converts '...' to '\\ldots'.
+ * Converts '...' to '\\ldots{}'.
  * @returns a parser token
  */
  function singleOperatorTripleDot() {
-    return new ParserToken(ParserTokens.STRING).withData("\\ldots");
+    return new ParserToken(ParserTokens.STRING).withData("\\ldots{}");
+}
+
+/**
+ * Converts ':' to '\\colon{}'.
+ * @returns a parser token
+ */
+ function singleOperatorColon() {
+    return new ParserToken(ParserTokens.STRING).withData("\\colon{}");
+}
+
+/**
+ * Converts ':=' to '\\coloneqq{}'.
+ * @returns a parser token
+ */
+ function singleOperatorColonEqq() {
+    return new ParserToken(ParserTokens.STRING).withData("\\coloneqq{}");
+}
+
+/**
+ * Converts '=:' to '\\eqqcolon{}'.
+ * @returns a parser token
+ */
+ function singleOperatorEqqColon() {
+    return new ParserToken(ParserTokens.STRING).withData("\\eqqcolon{}");
 }
 
 exports.generate = generate

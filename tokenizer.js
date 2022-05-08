@@ -436,6 +436,10 @@ function initialState(ch, state) {
       state.incPtr();
       state.setHandler(dotState);
       return true;
+    case ":":
+      state.incPtr();
+      state.setHandler(colonState);
+      return true;
   }
   if (checkVarname(ch, true)) {
     state.incPtr();
@@ -594,12 +598,17 @@ function blockCommentClose1State(ch, state) {
 }
 
 function equalsState(ch, state) {
-  if (state.isEof() || ch != ">") {
-    state.token = new Token(Tokens.EQUALS).init(state);
+  if (!state.isEof() && ch == ">") {
+    state.incPtr();
+    state.token = new Token(Tokens.EQUALS_GREATER_THAN).init(state);
     return false;
   }
-  state.incPtr();
-  state.token = new Token(Tokens.EQUALS_GREATER_THAN).init(state);
+  if (!state.isEof() && ch == ":") {
+    state.incPtr();
+    state.token = new Token(Tokens.EQUALS_COLON).init(state);
+    return false;
+  }
+  state.token = new Token(Tokens.EQUALS).init(state);
   return false;
 }
 
@@ -642,6 +651,16 @@ function doubleDotState(ch, state) {
   }
   state.incPtr();
   state.token = new Token(Tokens.TRIPLE_DOT).init(state);
+  return false;
+}
+
+function colonState(ch, state) {
+  if (!state.isEof() && ch == "=") {
+    state.incPtr();
+    state.token = new Token(Tokens.COLON_EQUALS).init(state);
+    return false;
+  }
+  state.token = new Token(Tokens.COLON).init(state);
   return false;
 }
 

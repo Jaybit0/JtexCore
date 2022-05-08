@@ -29,7 +29,10 @@ const Tokens = {
     UNDERSCORE: 27,
     DASH: 28,
     DOT: 29,
-    TRIPLE_DOT: 30
+    TRIPLE_DOT: 30,
+    COLON: 31,
+    COLON_EQUALS: 32,
+    EQUALS_COLON: 33
 };
 
 const ParserTokens = {
@@ -42,7 +45,10 @@ const ParserTokens = {
     IMPLIED_BY: 6,
     IFF: 7, 
     SUBSCRIPT: 8,
-    TRIPLE_DOT: 9
+    TRIPLE_DOT: 9,
+    COLON: 10,
+    COLON_EQUALS: 11,
+    EQUALS_COLON: 12
 };
 
 exports.Tokens = Tokens;

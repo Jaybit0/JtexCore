@@ -45,6 +45,15 @@ class ParserToken {
             case Tokens.TRIPLE_DOT:
                 this.id = ParserTokens.TRIPLE_DOT;
                 return this;
+            case Tokens.COLON:
+                this.id = ParserTokens.COLON;
+                return this;
+            case Tokens.COLON_EQUALS:
+                this.id = ParserTokens.COLON_EQUALS;
+                return this;
+            case Tokens.EQUALS_COLON:
+                this.id = ParserTokens.EQUALS_COLON;
+                return this;
             default:
                 this.id = ParserTokens.STRING;
                 return this;
