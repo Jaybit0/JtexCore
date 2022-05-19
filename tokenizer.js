@@ -504,7 +504,6 @@ function uState(ch, state) {
       return true;
     default:
       state.setHandler(varnameState);
-      state.incPtr();
       return true;
   }
 }
