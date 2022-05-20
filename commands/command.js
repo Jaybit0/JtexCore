@@ -122,7 +122,7 @@ class JtexCommand {
                     parse_stack.push(...result);
                     return true;
                 } else {
-                    parse_stack.push(result);
+                    parse_stack.push(result.at(op1, op2));
                     return true;
                 }
             }
@@ -159,7 +159,7 @@ class JtexCommand {
                     parse_stack.push(...result);
                     return true;
                 } else {
-                    parse_stack.push(result);
+                    parse_stack.push(result.at(parse_tree[ptr]));
                     return true;
                 }
             }

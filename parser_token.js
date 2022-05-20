@@ -76,9 +76,17 @@ class ParserToken {
      * @param {Token} endToken the ending lexer-token
      * @returns this instance
      */
-    at(beginToken, endToken) {
-        this.beginToken = beginToken;
-        this.endToken = endToken;
+    at(beginToken, endToken = null) {
+        if (endToken == null)
+            endToken = beginToken;
+        if (beginToken instanceof ParserToken)
+            this.beginToken = beginToken.beginToken;
+        else
+            this.beginToken = beginToken;
+        if (endToken instanceof ParserToken)
+            this.endToken = endToken.endToken;
+        else
+            this.endToken = endToken;
         return this;
     }
 
