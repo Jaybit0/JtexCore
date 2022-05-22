@@ -12,12 +12,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jaybit0/Jtex.git"
+    "url": "git+https://github.com/Jaybit0/JtexCore.git"
   },
-  "author": "",
+  "author": "Jaybit",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Jaybit0/Jtex/issues"
+    "url": "https://github.com/Jaybit0/JtexCore/issues"
   },
-  "homepage": "https://github.com/Jaybit0/Jtex#readme"
+  "homepage": "https://github.com/Jaybit0/JtexCore#readme"
 }
