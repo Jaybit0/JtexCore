@@ -1,5 +1,5 @@
 {
-  "name": "jtex",
+  "name": "jtex-core",
   "version": "0.0.1-alpha",
   "description": "",
   "main": "parser.js",
