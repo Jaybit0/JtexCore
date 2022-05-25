@@ -11,11 +11,11 @@ const opLoader = require("./operators/operator_loader.js");
 
 class Parser {
     /**
-     * Creates a new parser instance from the given tokenizer.
-     * @param {Tokenizer} tokenizer the corresponding tokenizer instance
+     * 
+     * @param {JtexEnvironment} env the environment path
      */
-    constructor(tokenizer) {
-        this.tokenizer = tokenizer;
+    constructor(env) {
+        this.env = env;
         this.commandDict = {};
         this.commandList = [];
         this.#initDefaultCommands();
@@ -26,7 +26,7 @@ class Parser {
      * Initializes all default Jtex-commands.
      */
     #initDefaultCommands() {
-        var commands = cmdLoader.loadCommands();
+        var commands = cmdLoader.loadCommands(this.env);
         for (var cmd of commands)
             this.initJtexCommand(cmd); 
     }
@@ -56,7 +56,7 @@ class Parser {
      * Injects the operators to their declared target-commands.
      */
     injectOperators() {
-        var ops = opLoader.loadOperators();
+        var ops = opLoader.loadOperators(this.env);
         for (var cmd of this.commandList) {
             for (var op of ops) {
                 if (op.commands.includes(cmd.name))
@@ -68,11 +68,13 @@ class Parser {
 
     /**
      * Parses the tokens from the Tokenizer instance to a LaTeX-string.
+     * @param {Tokenizer} tokenizer the Tokenizer instance
      * @param {string} lineBreak 
      * @returns {string} a string in LaTeX format
      */
-    parse(lineBreak = "\r\n") {
+    parse(tokenizer, lineBreak = "\r\n") {
         var buffer = new LineBuffer();
+        this.tokenizer = tokenizer;
         this.tokenizer.activateTokenBuffer(true);
         this.parseMain(buffer);
         return buffer.toString(lineBreak);

@@ -1,22 +1,19 @@
 const fs = require("fs");
 const fUtils = require("../utils/file_utils.js");
 
-const locations = ["./commands/default"];
-
 /**
  * Dynamically loads all commands from all directories / subdirectories specified in 'locations'
+ * @param {JtexEnvironment} env the environment
  * @returns a list of commands
  */
-function loadCommands() {
+function loadCommands(env) {
     commands = [];
-    for (var loc of locations) {
-        for (var f of fUtils.getFiles(loc)) {
-            try {
-                commands.push(...require(f).generate());
-            } catch (err) {
-                console.error("Could not load commands from file:", f);
-                console.error(err);
-            }
+    for (const f of env.getJtexCommandFiles()) {
+        try {
+            commands.push(...require(f)(env));
+        } catch (err) {
+            console.error("Could not load commands from file:", f);
+            console.error(err);
         }
     }
     return commands;
