@@ -73,7 +73,7 @@ class JtexCommand {
                 dict[op.tokenId] = [op];
         }
         return (parse_tree, parse_stack, ptr, incPtrFunc) => {
-            if (ptr == 0 || parse_tree.length <= ptr)
+            if (ptr == 0 || parse_tree.length <= ptr + 1)
                 return false;
             if (!(parse_tree[ptr].id in dict))
                 return false;
