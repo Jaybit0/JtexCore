@@ -3,7 +3,6 @@ module.exports = function(env) {
     const {Tokens} = require(path.join(env.base, "constants.js"));
     const {ParserError} = require(path.join(env.base, "errors", "parser_error.js"));
     const {JtexCommand} = require(path.join(env.base, "commands", "command.js"));
-    const fUtils = require(path.join(env.base, "utils", "file_utils.js"));
 
     class JtexCommandJs extends JtexCommand {
         constructor() {
@@ -21,9 +20,9 @@ module.exports = function(env) {
          * './code_exec_functions/'.
          */
         loadDefaultFunctions() {
-            for (var f of fUtils.getFiles("./code_exec_functions")) {
+            for (var f of env.getCustomFiles("code_exec_functions")) {
                 try {
-                    for (var [key, val] of Object.entries(require(f).generate()))
+                    for (var [key, val] of Object.entries(require(f)(env)))
                         this.scope[key] = val;
                 } catch (err) {
                     console.error("Could not load default functions from file:", f);

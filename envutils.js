@@ -5,7 +5,8 @@ const initialEnvDirs = [
     ["commands", "default"],
     ["operators", "default", "binary"],
     ["operators", "default", "unary"],
-    ["operators", "default", "single"]
+    ["operators", "default", "single"],
+    ["custom", "code_exec_functions"]
 ];
 
 const copy = [
@@ -20,6 +21,10 @@ const copy = [
     {
         src: ["operators", "single"],
         dest: ["operators", "default", "single"]
+    },
+    {
+        src: ["code_exec_functions"],
+        dest: ["custom", "code_exec_functions"]
     }
 ];
 
@@ -71,6 +76,10 @@ class JtexEnvironment {
                 for (const file of this.listFiles(path.join(this.path, 'operators', folder.name, type)))
                     files.push(file);
         return files;
+    }
+
+    getCustomFiles(id) {
+        return this.listFiles(path.join(this.path, "custom", id));
     }
 
     listFiles(dir, recursively=true) {
