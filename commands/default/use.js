@@ -79,16 +79,5 @@ module.exports = function(env) {
         }
     }
     
-    /**
-     * Generates all commands implemented in this file.
-     * This function is required for the command_loader to recognize the module and should not be called manually.
-     * @returns the list of commands
-     */
-    function generate() {
-        var cmds = [];
-        cmds.push(new JtexCommandUse());
-        return cmds;
-    }
-    
     return [new JtexCommandUse()];
 }
