@@ -14,12 +14,21 @@ class Parser {
      * 
      * @param {JtexEnvironment} env the environment path
      */
-    constructor(env) {
+    constructor(env, init=true) {
         this.env = env;
-        this.commandDict = {};
-        this.commandList = [];
-        this.#initDefaultCommands();
-        this.injectOperators();
+        if (init) {
+            this.commandDict = {};
+            this.commandList = [];
+            this.#initDefaultCommands();
+            this.injectOperators();
+        }
+    }
+
+    newInstance() {
+        var p = new Parser(this.env, false);
+        p.commandDict = this.commandDict;
+        p.commandList = this.commandList;
+        return p;
     }
 
     /**
