@@ -1,7 +1,7 @@
 module.exports = function(env) {
     const path = require('path');
     const { Tokens } = require(path.join(env.base, "constants.js"));
-    const { Token } = require(path.join(env.base, "tokenizer.js"));
+    const { Token, Tokenizer } = require(path.join(env.base, "tokenizer.js"));
     const pUtils = require(path.join(env.base, "utils", "parser_utils.js"));
     
     /**
@@ -24,8 +24,10 @@ module.exports = function(env) {
      * @param  {...string} str 
      */
     function interpret(str) {
-        var tokens = pUtils.tokenizeSubstring(str, this.cRefToken);
-        this.ctx.parser.tokenizer.queueTokens(tokens);
+        var subParser = this.ctx.parser.newInstance();
+        var tokenizer = new Tokenizer(str);
+        var dat = subParser.parse(tokenizer);
+        write.bind(this)(dat);
     }
     
     /**
