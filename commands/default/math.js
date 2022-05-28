@@ -25,7 +25,7 @@ module.exports = function(env) {
             var wrapperTree = {data: [dataTree], parent: null};
             dataTree.parent = wrapperTree;
 
-            var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0];
+            var mtree = pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0];
 
             // Write the LaTeX inline math-format to the line buffer
             buffer.append("$" + mtree.unwrap().toString() + "$");
@@ -77,7 +77,7 @@ module.exports = function(env) {
                 };
                 var wrapperTree = {data: [dataTree], parent: null};
                 dataTree.parent = wrapperTree;
-                parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.singleOperator)[0]);
+                parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0]);
             }
             var mode = params.getParam("mode");
             var mmode = "align*";

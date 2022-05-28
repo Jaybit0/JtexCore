@@ -54,6 +54,9 @@ class ParserToken {
             case Tokens.EQUALS_COLON:
                 this.id = ParserTokens.EQUALS_COLON;
                 return this;
+            case Tokens.CIRCLE:
+                this.id = ParserTokens.SET;
+                return this;
             default:
                 this.id = ParserTokens.STRING;
                 return this;

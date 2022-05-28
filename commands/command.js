@@ -57,6 +57,7 @@ class JtexCommand {
      */
     buildOperators() {
         this.binaryOperator = this.buildBinaryOperators();
+        this.unaryOperator = this.buildUnaryOperators();
         this.singleOperator = this.buildSingleOperators();
     }
 
@@ -128,6 +129,61 @@ class JtexCommand {
             }
             return false;
         };
+    }
+
+    /**
+     * Builds the handler-function for unary operators.
+     * @returns the operator-handler-function
+     */
+    buildUnaryOperators() {
+        var dict = {};
+        for (var op of this.unaryOperators) {
+            if (op.tokenId in dict)
+                dict[op.tokenId].push(op)
+            else
+                dict[op.tokenId] = [op];
+        }
+        return (parse_tree, parse_stack, ptr, incPtrFunc) => {
+            if (parse_tree.length <= ptr+1)
+                return false;
+            if (!(parse_tree[ptr].id in dict))
+                return false;
+            
+            var mptr = ptr +1;
+            var op1 = parse_tree[mptr];
+            var cachedOps = []
+
+            // While the operator is a whitespace, we move to the next operator
+            while (op1.beginToken.id == Tokens.WHITESPACE) {
+                mptr = incPtrFunc(1)+1;
+                if (parse_tree.length <= mptr) {
+                    while (cachedOps.length > 0) {
+                        parse_stack.push(cachedOps.pop());
+                    }
+                    incPtrFunc(ptr+1-mptr);
+                    return false;
+                }  
+                op1 = parse_tree[mptr];
+            }
+
+            var result = null;
+            for (var operator of dict[parse_tree[ptr].id]) {
+                if (operator.checker(parse_tree[ptr], [op1])) {
+                    result = operator.handler(op1);
+                    break;
+                }
+            }
+            if (result != null) {
+                if (Array.isArray(result)) {
+                    parse_stack.push(...result);
+                    return true;
+                } else {
+                    parse_stack.push(result.at(parse_tree[ptr]));
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**

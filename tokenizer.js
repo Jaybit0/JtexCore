@@ -440,6 +440,10 @@ function initialState(ch, state) {
       state.incPtr();
       state.setHandler(colonState);
       return true;
+    case "°":
+      state.incPtr();
+      state.token = new Token(Tokens.CIRCLE).init(state);
+      return false;
   }
   if (checkVarname(ch, true)) {
     state.incPtr();

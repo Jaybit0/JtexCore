@@ -23,6 +23,10 @@ const copy = [
         dest: ["operators", "default", "single"]
     },
     {
+        src: ["operators", "unary"],
+        dest: ["operators", "default", "unary"]
+    },
+    {
         src: ["code_exec_functions"],
         dest: ["custom", "code_exec_functions"]
     }

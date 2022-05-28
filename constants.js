@@ -32,7 +32,8 @@ const Tokens = {
     TRIPLE_DOT: 30,
     COLON: 31,
     COLON_EQUALS: 32,
-    EQUALS_COLON: 33
+    EQUALS_COLON: 33, 
+    CIRCLE: 34
 };
 
 const ParserTokens = {
@@ -48,7 +49,8 @@ const ParserTokens = {
     TRIPLE_DOT: 9,
     COLON: 10,
     COLON_EQUALS: 11,
-    EQUALS_COLON: 12
+    EQUALS_COLON: 12,
+    SET: 13
 };
 
 exports.Tokens = Tokens;

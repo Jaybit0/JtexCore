@@ -53,11 +53,12 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
  * 
  * @param {any} parse_tree the parsed tree as it is returned from the function 'buildBracketTree'
  * @param {boolean} inline whether the math-mode is inline
- * @param {function(any, Token[], int): boolean} binaryOperators the binary-operator handler-function
- * @param {function(any, Token[], int): boolean} singleOperators the single-operator handler-function
+ * @param {function(any, Token[], int, function(int): int): boolean} binaryOperators the binary-operator handler-function
+ * @param {function(any, Token[], int, function(int): int): boolean} unaryOperators the unary-operator handler-function
+ * @param {function(any, Token[], int, function(int): int): boolean} singleOperators the single-operator handler-function
  * @returns an array of output-tokens
  */
-function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
+function parseMathTree(parse_tree, inline, binaryOperators, unaryOperators, singleOperators) {
     var preprocessed_parse_tree = [];
     var parse_stack = [];
 
@@ -66,7 +67,7 @@ function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
         if (parse_tree.data[i] instanceof Token) {
             preprocessed_parse_tree.push(new ParserToken(-1).fromLexerToken(parse_tree.data[i]));
         } else {
-            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, singleOperators);
+            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, unaryOperators,singleOperators);
             var data = parsed.map(tk => tk.toString()).join("")
             preprocessed_parse_tree.push(new ParserToken(ParserTokens.STRING).withData(data).at(parsed[0].beginToken, parsed[parsed.length-1].endToken).wrap());
         }
@@ -75,6 +76,8 @@ function parseMathTree(parse_tree, inline, binaryOperators, singleOperators) {
     // Evaluate operators
     for (var i = 0; i < preprocessed_parse_tree.length; i++) {
         if (binaryOperators(preprocessed_parse_tree, parse_stack, i, (m) => {i+=m; return i;})) {
+            i++;
+        } else if (unaryOperators(preprocessed_parse_tree, parse_stack, i, (m) => {i+=m; return i;})) {
             i++;
         } else if (singleOperators(preprocessed_parse_tree, parse_stack, i, (m) => {i+=m; return i;})) {
             continue;

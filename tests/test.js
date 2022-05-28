@@ -1,7 +1,7 @@
-import {Tokenizer, Token} from "../tokenizer.js";
+const {Tokenizer, Tokens, Token} = require("../tokenizer.js");
 
 //var str = "  \\ \n \t \\  \n  %This is a comment\\\n \\MYVARNAMElul u";
-var str = "\t  \\  %This is a comment \\\n use \n userfriendly ([{}]) ---";
+var str = "this is ° Token";
 var mstr = "";
 for (var i = 0; i < 1; i++)
     mstr += str;
