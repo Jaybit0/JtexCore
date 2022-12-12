@@ -476,7 +476,7 @@ function latexPreCommandState(ch, state) {
 }
 
 function latexCommandState(ch, state) {
-  if (!checkProgressingLatexVarname(ch)) {
+  if (state.isEof() || !checkProgressingLatexVarname(ch)) {
     state.token = new Token(Tokens.LATEX_COMMAND).init(state);
     return false;
   }
