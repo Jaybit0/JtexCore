@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/Jaybit0/JtexCore/issues"
   },
-  "homepage": "https://github.com/Jaybit0/JtexCore#readme"
+  "homepage": "https://github.com/Jaybit0/JtexCore#readme",
+  "dependencies": {
+    "mathjs": "^10.6.1"
+  }
 }

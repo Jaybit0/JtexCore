@@ -31,6 +31,11 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
             current.data.push(subTree);
             current = subTree;
         } else if (bracketStack.length != 0 && ctx.parser.tokenizer.current.id == brackets[bracketStack[bracketStack.length-1]]) {
+            // Prevent empty subtrees by pushing an empty string-token
+            if (current.data.length == 0) {
+                current.data.push(new Token(Tokens.EMPTY).withData("").initFrom(ctx.parser.tokenizer.current));
+            }
+
             bracketStack.pop();
             current = current.parent;
         } else if (Object.values(brackets).includes(ctx.parser.tokenizer.current.id)) {
@@ -68,7 +73,7 @@ function parseMathTree(parse_tree, inline, binaryOperators, unaryOperators, sing
             preprocessed_parse_tree.push(new ParserToken(-1).fromLexerToken(parse_tree.data[i]));
         } else {
             var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, unaryOperators,singleOperators);
-            var data = parsed.map(tk => tk.toString()).join("")
+            var data = parsed.map(tk => tk.toString()).join("");
             preprocessed_parse_tree.push(new ParserToken(ParserTokens.STRING).withData(data).at(parsed[0].beginToken, parsed[parsed.length-1].endToken).wrap());
         }
     }
@@ -85,6 +90,7 @@ function parseMathTree(parse_tree, inline, binaryOperators, unaryOperators, sing
             parse_stack.push(preprocessed_parse_tree[i]);
         }
     }
+
     return parse_stack;
 }
 

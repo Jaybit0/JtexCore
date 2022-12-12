@@ -66,6 +66,45 @@ module.exports = function(env) {
     function mgen(w, h, gen = (i, j) => 1) {
         return Array.apply(null, Array(h)).map((x, i) => Array.apply(null, Array(w)).map((y, j) => gen(i, j)));
     }
+
+    function topdowntree(nodes, ...lvldistmm) {
+        var mwrite = write.bind(this);
+        mwrite("\n\\begin{tikzpicture}\n");
+        for (var i = 0; i < lvldistmm.length; i++)
+            mwrite("\t\\tikzstyle{level " + (i+1) + "}=[sibling distance=" + lvldistmm[i] + "mm]\n");
+        mwrite("\t\\node\n");
+        var nodeToString = function(node) {
+            if (node == null) {
+                return "edge from parent[draw=none]";
+            }
+            return "node [draw] {" + node + "}";
+        }
+        mwrite("\t[draw,] {" + (nodes[0] == null ? "" : nodes[0]) + "}");
+        var writeRecursively = function(index, layer) {
+            var tabs = "";
+            for (var i = 0; i < layer; i++)
+                tabs += "\t";
+            mwrite("\n" + tabs + "child{" + nodeToString(nodes[index]));
+            var leftIdx = 2 * index + 1;
+            var rightIdx = 2 * index + 2;
+            if (leftIdx < nodes.length) {
+                writeRecursively(leftIdx, layer + 1);
+            }
+            if (rightIdx < nodes.length) {
+                writeRecursively(rightIdx, layer + 1);
+            }
+            mwrite("}");
+        }
+
+        if (nodes.length > 0) {
+            writeRecursively(1, 2);
+        }
+        if (nodes.length > 1) {
+            writeRecursively(2, 2);
+        }
+        mwrite(";");
+        mwrite("\n\\end{tikzpicture}\n");
+    }
     
     /**
      * Generates all code-exec-functions implemented in this file.
@@ -76,6 +115,7 @@ module.exports = function(env) {
         "write": write,
         "interpret": interpret,
         "matrix": matrix,
-        "mgen": mgen
+        "mgen": mgen,
+        "topdowntree": topdowntree
     };
 }

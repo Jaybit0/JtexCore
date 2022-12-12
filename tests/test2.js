@@ -7,7 +7,7 @@ const path = require("path");
 
 var env = new JtexEnvironment(path.join(os.homedir(), ".jtex", "environments", "default")).init(force=true);
 
-const content = fs.readFileSync("./tests/lina4.1.jtex").toString();
+const content = fs.readFileSync("./tests/test.jtex").toString();
 
 var parser = new Parser(env);
 var tokenizer = new Tokenizer(content);
