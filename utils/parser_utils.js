@@ -72,7 +72,7 @@ function parseMathTree(parse_tree, inline, binaryOperators, unaryOperators, sing
         if (parse_tree.data[i] instanceof Token) {
             preprocessed_parse_tree.push(new ParserToken(-1).fromLexerToken(parse_tree.data[i]));
         } else {
-            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, unaryOperators,singleOperators);
+            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, unaryOperators, singleOperators);
             var data = parsed.map(tk => tk.toString()).join("");
             preprocessed_parse_tree.push(new ParserToken(ParserTokens.STRING).withData(data).at(parsed[0].beginToken, parsed[parsed.length-1].endToken).wrap());
         }

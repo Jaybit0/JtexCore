@@ -79,17 +79,18 @@ class JtexCommand {
             if (!(parse_tree[ptr].id in dict))
                 return false;
 
-            
             var op1 = parse_stack.pop();
             var cachedOps = [op1];
 
-            // While the operator is a whitespace, we pop the next operator
-            while (op1.beginToken.id == Tokens.WHITESPACE) {
+            // While the operand is a whitespace, we pop the next operand
+            //while (op1.beginToken.id == Tokens.WHITESPACE) {
+            while (op1.wraps == 0 && op1.data.replace(/\s/g, "").length == 0) {
                 if (parse_stack.length == 0) {
                     while (cachedOps.length > 0) {
                         parse_stack.push(cachedOps.pop());
                     }
-                    incPtrFunc(-1);
+                    // TODO: Understand why I wrote the commented line below...
+                    // incPtrFunc(-1);
                     return false;
                 }
                 op1 = parse_stack.pop();
@@ -98,8 +99,9 @@ class JtexCommand {
             var mptr = ptr+1;
             var op2 = parse_tree[mptr];
 
-            // While the operator is a whitespace, we move to the next operator
-            while (op2.beginToken.id == Tokens.WHITESPACE) {
+            // While the operand is a whitespace, we move to the next operand
+            //while (op2.beginToken.id == Tokens.WHITESPACE) {
+            while (op2.wraps == 0 && op2.data.replace(/\s/g, "").length == 0) {
                 mptr = incPtrFunc(1)+1;
                 if (parse_tree.length <= mptr) {
                     while (cachedOps.length > 0) {
