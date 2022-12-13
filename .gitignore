@@ -1,5 +1,6 @@
 # Test data files
 /tests/*.jtex
 /tests/*.tex
+/tests/failedtests/*
 /node_modules/*
 /package-lock.json
