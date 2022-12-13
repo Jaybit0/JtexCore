@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test1": "node tests/test.js",
-    "test2": "node tests/test2.js"
+    "test2": "node tests/test2.js",
+    "unittest": "node tests/unittest.js"
   },
   "repository": {
     "type": "git",
