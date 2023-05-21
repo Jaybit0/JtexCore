@@ -85,6 +85,7 @@ class JtexCommand {
             // While the operand is a whitespace, we pop the next operand
             //while (op1.beginToken.id == Tokens.WHITESPACE) {
             while (op1.wraps == 0 && op1.data.replace(/\s/g, "").length == 0) {
+                console.log("op1.wraps")
                 if (parse_stack.length == 0) {
                     while (cachedOps.length > 0) {
                         parse_stack.push(cachedOps.pop());
@@ -156,7 +157,7 @@ class JtexCommand {
             var cachedOps = []
 
             // While the operator is a whitespace, we move to the next operator
-            while (op1.beginToken.id == Tokens.WHITESPACE) {
+            while (op1.wraps == 0 && op1.data.replace(/\s/g, "").length == 0) {
                 mptr = incPtrFunc(1)+1;
                 if (parse_tree.length <= mptr) {
                     while (cachedOps.length > 0) {
