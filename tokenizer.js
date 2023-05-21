@@ -180,7 +180,8 @@ class Token {
   toString() {
     switch (this.id) {
       case Tokens.BLOCK_COMMENT:
-        return "%" + this.data.replaceAll("\n", "\n%");
+        // Add a newline after the comment to prevent the current line to be commented in LaTeX
+        return "%" + this.data.replaceAll("\n", "\n%") + "\r\n";
       default:
         return this.data;
     }
