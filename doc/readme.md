@@ -41,6 +41,7 @@ Here, we will provide a list of basic commands provided by the converter:
 | Command | Description                                                                                   | Example   |
 | ------- | --------------------------------------------------------------------------------------------- | --------- |
 | `--\s`  | Starts the [inline math-mode](#inline-math-mode) and is indicated by any whitespace character | `-- 1/2;` |
+| `--m`   | Starts the [Block-math-mode](#block-math-mode)                                                | `--m{1/2}`|
 
 ## Math mode
 
@@ -62,13 +63,44 @@ $a:=\frac{2}{3+5}$
 
 Note that `;` is used to indicate the end of the inline math mode. However, `;` will be interpreted as a string if occurring within any brackets.
 
+### Block math mode
+
+The block math mode is indicated by `--m`, followed by curly brackets. The converter interprets the input and converts it to a an align* environment in LaTeX. The expression
+```
+--m{
+    x &= (3/2)^2\\
+    &=  2.25
+}
+```
+
+will be converted to 
+```
+\begin{align*}
+    x &= \left(\frac{3}{2}\right)^{2}\\
+    &=  2.25
+\end{align*}
+```
+
 ### Symbols
 
-| Symbol | Description | Example   | Output             |
-| ------ | ----------- | --------- | ------------------ |
-| `=>`   | Implication | `x => y`  | `x \implies{} y`   |
-| `<=`   | Implied by  | `x <= y`  | `x \impliedby{} y` |
-| `<=>`  | Equivalence | `x <=> y` | `x \iff{} y`       |
+Jtex replaces many symbols automatically in math mode, to help with fulfilling the conventions.
+
+| Symbol | Description | Example     | Output             |
+| ------ | ----------- | ---------   | ------------------ |
+| `=>`   | Implication | `x => y`    | `x \implies{} y`   |
+| `<=`   | Implied by  | `x <= y`    | `x \impliedby{} y` |
+| `<=>`  | Equivalence | `x <=> y`   | `x \iff{} y`       |
+| `...`  | TripleDot   | `1, ..., n` | `1, \ldots{}, n`   |
+| `:`    | Colon       | `x: x<y `   | `x \colon{} x<y`   |
+| `:=`   | Colonequal  | `x := 2 `   | `x \coloneqq{} 2`  |
+| `=:`   | Equalcolon  | `2 =: x `   | `2 \eqqcolon{} x`  |
+
+### Unary Operators 
+
+| Operator | Description | Example     | Output                    |
+| -------- | ----------- | ----------- | ------------------------- |
+| `°`      | Set         | `°(1, 2, 3)`| `\left\{1, 2, 3 \right\}` |
+
 
 ### Binary operators
 
@@ -77,8 +109,20 @@ Note that `;` is used to indicate the end of the inline math mode. However, `;` 
 | `/`      | Fraction    | `1/(2+3)`   | `\frac{1}{2+3}` |
 | `*`      | Product     | `1*2`       | `1\cdot{}2`     |
 | `^`      | Power       | `2^(3+4)`   | `{2}^{3+4}`     |
-| `^-`     | Overline    | `x^-`       | `\overline{x}`  |
+| `^_`     | Overline    | `x^_`       | `\overline{x}`  |
 | `_`      | Subscript   | `x_(2n)`    | `{x}_{2n}`      |
-| `//`     | Integral    | `(0)//(10)` | `\int_{0}^{10}` |
+| `//`     | Integral    | `a//b`      | `\int_{a}^{b}`  |
 
+Notice, that you should use parentheses and not curly brackets like in normal LaTeX to use operators on a sequence of characters.
 ## Comments
+
+Comments in a single line can be used identical to normal LaTeX with the character `%`. 
+
+In contrast to LaTeX, one may also use block comments, which can span over multiple lines. Here, `/*` marks the beginning of a block comment and `*/` marks the end. 
+When compiling to LaTeX Code, these block comments will be compiled to multiple single-line comments in LaTeX, i. e. there will be placed a `%` in front of every line of the block comment.
+
+## Known Bugs
+
+When using parentheses in math mode without any operator, JTex will automatically place `\left` and `\right` (see [Math mode](#math-mode)). This creates a problem, when `\left` and `\right` were already placed by the user, 
+because it leads to a doubling of operators in the LaTeX file, which throws a compilation error. It is therefore necessary, to not use these LaTeX operators on round parentheses in JTex math mode. In future versions, it is planned to 
+check whether the user already placed `\left` and `\right` before placing it again in the compilation process, to assure compatibility of JTex math mode and the LaTeX equation environment. 
