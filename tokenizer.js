@@ -347,6 +347,10 @@ function checkVarname(ch, start = false) {
   return /[a-zA-Z0-9]/.test(ch);
 }
 
+function checkNumber(ch) {
+  return /[0-9]/.test(ch);
+}
+
 /**
  *
  * @param {string} ch the character to check
@@ -445,6 +449,11 @@ function initialState(ch, state) {
       state.incPtr();
       state.token = new Token(Tokens.CIRCLE).init(state);
       return false;
+  }
+  if (checkNumber(ch)) {
+    state.incPtr();
+    state.setHandler(numberState);
+    return true;
   }
   if (checkVarname(ch, true)) {
     state.incPtr();
@@ -545,6 +554,15 @@ function varnameState(ch, state) {
   return true;
 }
 
+function numberState(ch, state) {
+  if (state.isEof() || !checkNumber(ch)) {
+    state.token = new Token(Tokens.NUMBER).init(state);
+    return false;
+  }
+  state.incPtr();
+  return true;
+}
+
 function dashState(ch, state) {
   if (state.isEof() || ch != "-") {
     state.token = new Token(Tokens.DASH).init(state);
@@ -562,13 +580,31 @@ function slashState(ch, state) {
   }
   if (ch == "/") {
     state.incPtr();
-    state.token = new Token(Tokens.DOUBLE_SLASH).init(state);
-    return false;
+    state.setHandler(doubleSlashState);
+    return true;
   }
   state.incPtr();
   state.setHandler(blockCommentState);
   return true;
 }
+
+function doubleSlashState(ch, state) {
+  if (state.isEof() || (ch != "*" && ch != "/")) {
+    state.token = new Token(Tokens.DOUBLE_SLASH).init(state);
+    return false;
+  }
+  if (ch == "/") {
+    state.token = new Token(Tokens.DOUBLE_SLASH).init(state);
+    return false;
+  }
+  if (ch == "*") {
+    state.token = new Token(Tokens.SLASH).init(state);
+    state.token.data = state.token.data.substr(1);
+    state.ptr -= 1;
+    return false;
+  }
+}
+    
 
 function blockCommentState(ch, state) {
   if (state.isEof()) {
