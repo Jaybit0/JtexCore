@@ -4,6 +4,7 @@ const {Parser} = require("../parser.js");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const {generateDynamicHeaders} = require("../postprocessing/dynamic_header_generator.js");
 
 var env = new JtexEnvironment(path.join(os.homedir(), ".jtex", "environments", "default")).init(force=true);
 
@@ -14,7 +15,7 @@ var tokenizer = new Tokenizer(content);
 
 const startMillis = performance.now();
 
-var dat = parser.parse(tokenizer);
+var dat = parser.parse(tokenizer, "\r\n", true);
 
 console.log("========================")
 console.log("Total millis: ", performance.now() - startMillis, "ms")

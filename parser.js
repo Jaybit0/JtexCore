@@ -4,6 +4,7 @@ const {LineBuffer} = require("./utils/line_buffer.js");
 const {ParserError} = require("./errors/parser_error.js");
 const {JtexCommand} = require("./commands/command.js");
 const {ParameterList} = require("./commands/parameter_list.js");
+const {generateDynamicHeaders} = require("./postprocessing/dynamic_header_generator.js");
 const pUtils = require("./utils/parser_utils.js");
 const stringUtils = require("./utils/string_utils.js");
 const cmdLoader = require("./commands/command_loader.js");
@@ -81,12 +82,15 @@ class Parser {
      * @param {string} lineBreak 
      * @returns {string} a string in LaTeX format
      */
-    parse(tokenizer, lineBreak = "\r\n") {
+    parse(tokenizer, lineBreak = "\r\n", addHeaders = false) {
         var buffer = new LineBuffer();
         this.tokenizer = tokenizer;
         this.tokenizer.activateTokenBuffer(true);
         this.parseMain(buffer);
-        return buffer.toString(lineBreak);
+        var data = buffer.toString(lineBreak);
+        if (addHeaders)
+            data = generateDynamicHeaders(data, this.env.getRequiredLaTeXPackages());
+        return data
     }
 
     /**
