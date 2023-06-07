@@ -1,6 +1,6 @@
 function generateDynamicHeaders(data, necessaryPackages = []) {
     // Check if data contains a certain string
-    if (data.includes("\\documenttype"))
+    if (data.includes("\\documentclass"))
         return data
     
     // Split data into lines
