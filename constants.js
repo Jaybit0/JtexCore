@@ -33,7 +33,8 @@ const Tokens = {
     COLON: 31,
     COLON_EQUALS: 32,
     EQUALS_COLON: 33, 
-    CIRCLE: 34
+    CIRCLE: 34,
+    NUMBER: 35
 };
 
 const ParserTokens = {
