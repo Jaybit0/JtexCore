@@ -97,6 +97,11 @@ class JtexEnvironment {
         }
         return files;
     }
+
+    getRequiredLaTeXPackages() {
+        // TODO: Implement
+        return ["amsmath"];
+    }
 }
 
 exports.JtexEnvironment = JtexEnvironment;
