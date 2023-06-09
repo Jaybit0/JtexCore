@@ -30,6 +30,21 @@ function generateDynamicHeaders(data, strict = false, necessaryPackages = []) {
         for (let i = 0; i < matches.length; i++) {
             let start = currentIndex;
             let end = start + matches[i].length;
+
+            /*const lastNewLine = data.lastIndexOf('\n', start);
+            let commentFound = false;
+
+            for (let j = lastNewLine + 1; j < start; j++) {
+                console.log(data[j])
+                if (data[j] == '%') {
+                    commentFound = true;
+                    break;
+                }
+            }
+
+            if (commentFound)
+                continue;*/
+
             indices.push({
                 start,
                 end,
