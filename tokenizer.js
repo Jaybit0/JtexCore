@@ -11,6 +11,7 @@ class Tokenizer {
     this.tokenBuffer = [];
     this.tokenBufferActive = false;
     this.tokenQueue = [];
+    this.wasLineBreak = false;
   }
 
   /**
@@ -35,12 +36,31 @@ class Tokenizer {
    */
   next() {
     if (this.tokenQueue.length != 0) {
+      const last = this.current;
       this.current = this.tokenQueue.shift();
+
+      if (last.line != this.current.line)  {
+        this.wasLineBreak = true;
+      } 
+      if (this.wasLineBreak && !this.currentTokenWhitespaceOrComment()) {
+        this.wasLineBreak = false;
+      }
+        
+
       if (this.tokenBufferActive && this.current.id != Tokens.EOF)
         this.tokenBuffer.push(this.current);
       return this.current.id != Tokens.EOF;
     }
+    const last = this.current;
     this.current = parseNext(this.state);
+
+    if (last == null || last.line != this.current.line) {
+      this.wasLineBreak = true;
+    } 
+    if (this.wasLineBreak && !this.currentTokenWhitespaceOrComment()) {
+      this.wasLineBreak = false;
+    }
+
     if (this.tokenBufferActive && this.current.id != Tokens.EOF)
       this.tokenBuffer.push(this.current);
     return this.current.id != Tokens.EOF;
@@ -198,7 +218,7 @@ class State {
     this.beginPtr = 0;
     this.ptr = 0;
     this.line = 1;
-    this.beginLine = 0;
+    this.beginLine = 1;
     this.col = 0;
     this.beginCol = 0;
     this.token = null;
