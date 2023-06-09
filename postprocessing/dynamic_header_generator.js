@@ -1,10 +1,6 @@
 // Dynamically generates a header for a LaTeX document based on the packages used in the document
 // If strict is true, then the header will only contain the packages used in the document
 function generateDynamicHeaders(data, strict = false, necessaryPackages = []) {
-    // Check if data contains a certain string
-    if (data.includes("\\documentclass"))
-        return data;
-    
     out = "\\makeatletter"
     out += "\n\\AddToHook{begindocument/before}\n{"
     for (let i = 0; i < necessaryPackages.length; i++) {
@@ -12,10 +8,15 @@ function generateDynamicHeaders(data, strict = false, necessaryPackages = []) {
         out += "\n\t\t\\usepackage{" + necessaryPackages[i] + "}\n\t}";
     }
     out += "\n}"
-    out += "\n\\makeatother\n"
+    out += "\n\\makeatother\n\n"
 
-    if (strict)
-        return data;
+    // Check if data contains a certain string
+    if (strict || data.includes("\\documentclass"))
+        return out + data;
+    
+    console.log("No header found.");
+    console.log("Generating header automatically...");
+    console.log("Keep in mind that this may not work for more complex documents.");
 
     // Find all occurrences of \usepackage containing its arguments
     let regex = /\\usepackage\s*(\[\s*[^\]]*\s*\])?\{\s*[^}]*\s*\}/g;
