@@ -88,8 +88,7 @@ class Parser {
         this.tokenizer.activateTokenBuffer(true);
         this.parseMain(buffer);
         var data = buffer.toString(lineBreak);
-        if (addHeaders)
-            data = generateDynamicHeaders(data, this.env.getRequiredLaTeXPackages());
+        data = generateDynamicHeaders(data, !addHeaders, this.env.getRequiredLaTeXPackages());
         return data
     }
 

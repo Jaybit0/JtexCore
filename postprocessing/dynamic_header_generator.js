@@ -1,10 +1,21 @@
-function generateDynamicHeaders(data, necessaryPackages = []) {
+// Dynamically generates a header for a LaTeX document based on the packages used in the document
+// If strict is true, then the header will only contain the packages used in the document
+function generateDynamicHeaders(data, strict = false, necessaryPackages = []) {
     // Check if data contains a certain string
     if (data.includes("\\documentclass"))
-        return data
+        return data;
     
-    // Split data into lines
-    var lines = data.split("\n");
+    out = "\\makeatletter"
+    out += "\n\\AddToHook{begindocument/before}\n{"
+    for (let i = 0; i < necessaryPackages.length; i++) {
+        out += "\n\t\\@ifpackageloaded{" + necessaryPackages[i] + "}{\\relax}\n\t{"
+        out += "\n\t\t\\usepackage{" + necessaryPackages[i] + "}\n\t}";
+    }
+    out += "\n}"
+    out += "\n\\makeatother\n"
+
+    if (strict)
+        return data;
 
     // Find all occurrences of \usepackage containing its arguments
     let regex = /\\usepackage\s*(\[\s*[^\]]*\s*\])?\{\s*[^}]*\s*\}/g;
@@ -34,15 +45,7 @@ function generateDynamicHeaders(data, necessaryPackages = []) {
     for(index in indices) {
         out += "\n" + indices[index].matchedString
     }
-    out += "\n\n\\makeatletter"
-    out += "\n\\AddToHook{begindocument/before}\n{"
-    for (let i = 0; i < necessaryPackages.length; i++) {
-        out += "\n\t\\@ifpackageloaded{" + necessaryPackages[i] + "}{\\relax}\n\t{"
-        out += "\n\t\t\\usepackage{" + necessaryPackages[i] + "}\n\t}";
-    }
-    out += "\n}"
-    out += "\n\\makeatother\n"
-    out += "\n\\begin{document}\n\n"
+    out += "\n\n\\begin{document}\n\n"
     out += mdata
     out += "\n\n\\end{document}"
     return out
