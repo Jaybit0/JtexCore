@@ -4,6 +4,7 @@ module.exports = function(env) {
     const {ParserError} = require(path.join(env.base, "errors", "parser_error.js"));
     const {JtexCommand} = require(path.join(env.base, "commands", "command.js"));
     const pUtils = require(path.join(env.base, "utils", "parser_utils.js"));
+    const {Token} = require(path.join(env.base, "tokenizer.js"));
 
     class JtexCommandMathInline extends JtexCommand {
         constructor() {
@@ -16,7 +17,7 @@ module.exports = function(env) {
          * @param {LineBuffer} buffer a line buffer
          * @param {ParserContext} ctx the parser context
          */
-        parseJtexMathInline(buffer, ctx, args) {
+        parseJtexMathInline(buffer, ctx, params, args) {
             var allowedBrackets = {};
             allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
             var dataTree = pUtils.buildBracketTree(buffer, ctx, tk => tk.id == Tokens.SEMICOLON, true, allowedBrackets);
@@ -44,7 +45,7 @@ module.exports = function(env) {
          * @param {ParserContext} ctx the parser context
          * @param {ParameterList} params a list of optional parameters
          */
-        parseJtexMathBlock(buffer, ctx, params) {
+        parseJtexMathBlock(buffer, ctx, params, args) {
             var allowedBrackets = {};
             allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
             if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)
@@ -87,5 +88,129 @@ module.exports = function(env) {
         }
     }
 
-    return [new JtexCommandMathInline(), new JtexCommandMathBlock()];
+    class JtexCommandMatrix extends JtexCommand {
+        constructor() {
+            super("default.math.matrix", Tokens.VARNAME, tk => tk.data == "mat" || tk.data == "pmat" || tk.data == "bmat"
+                || tk.data == "plmat" || tk.data == "Bmat" || tk.data == "vmat" || tk.data == "Vmat");
+            this.init(this.parseMatrix);
+        }
+
+        parseMatrix(buffer, ctx, params, args) {
+            if (ctx.countContextOccurrences(mctx => mctx === "default.math.inline" || mctx === "default.math.block") == 0)
+                throw new ParserError("Cannot use matrix command outside a math environment.").init(args.commandToken);
+
+            var allowedBrackets = {};
+            allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
+            if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)
+                throw new ParserError("Expected curly bracket after command.").init(ctx.parser.tokenizer.current);
+            var ctr = 0;
+            var checker = tk => {
+                if (tk.id == Tokens.CURLY_BRACKET_OPEN)
+                    ctr++;
+                else if (tk.id == Tokens.CURLY_BRACKET_CLOSED)
+                    ctr--;
+                if (ctr < 0)
+                    return true;
+                return false;
+            };
+            var dataTree = pUtils.buildBracketTree(buffer, ctx, checker, true, allowedBrackets);
+            var matrix = [[]];
+            var curElement = [];
+
+            var mathComponents = [[]];
+            var line_tracker = -1;
+            for (var token of dataTree.data) {
+                if (line_tracker == -1)
+                    line_tracker = token.line;
+                else if (line_tracker != token.line) {
+                    mathComponents.push([]);
+                    matrix[matrix.length-1].push(curElement);
+                    matrix.push([]);
+                    curElement = [];
+                    line_tracker = token.line;
+                }
+                if (token.id == Tokens.SEMICOLON) {
+                    mathComponents.push([]);
+                    matrix[matrix.length-1].push(curElement);
+                    matrix.push([]);
+                    curElement = [];
+                } else if (token.id == Tokens.COMMA) {
+                    mathComponents[mathComponents.length-1].push(new Token(Tokens.ANY).initFrom(token).withData("&"));
+                    matrix[matrix.length-1].push(curElement);
+                    curElement = [];
+                } else {
+                    mathComponents[mathComponents.length-1].push(token);
+                    curElement.push(token);
+                }
+            }
+
+            if (matrix[matrix.length-1].length == 0)
+                matrix.pop();
+
+            var parsedComponents = [];
+            for (var component of mathComponents) {
+                var dataTree = {
+                    data: component,
+                    parent: null
+                };
+                var wrapperTree = {data: [dataTree], parent: null};
+                dataTree.parent = wrapperTree;
+                parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0]);
+            }
+            var mode = params.getParam("mode");
+
+            var cmd = args.commandToken;
+            var mmode = "pmatrix";
+
+            switch (cmd.data) {
+                case "mat":
+                    break;
+                case "pmat":
+                    break;
+                case "bmat":
+                    mmode = "bmatrix";
+                    break;
+                case "plmat":
+                    mmode = "matrix";
+                    break;
+                case "Bmat":
+                    mmode = "Bmatrix";
+                    break;
+                case "vmat":
+                    mmode = "vmatrix";
+                    break;
+                case "Vmat":
+                    mmode = "Vmatrix";
+                    break;
+                default:
+                    throw new ParserError("Could not identify matrix mode: " + cmd.data).init(cmd);
+            }
+
+            if (mode != null)
+                mmode = pUtils.stringify(mode.args[0]);
+
+            var store = params.getParam("store");
+            if (store != null) {
+                var varname = pUtils.stringify(store.args[0]);
+                if (ctx.vars["matrices"] == null)
+                    ctx.vars["matrices"] = {}
+                ctx.vars["matrices"][varname] = new StoredMatrix(matrix);
+            }
+            
+            if (params.getParam("hide") == null)
+                buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
+        }
+    }
+
+    class StoredMatrix {
+        constructor(data) {
+            this.data = data;
+        }
+
+        recall(mmode) {
+
+        }
+    }
+
+    return [new JtexCommandMathInline(), new JtexCommandMathBlock(), new JtexCommandMatrix()];
 }
