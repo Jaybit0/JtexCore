@@ -78,6 +78,7 @@ module.exports = function(env) {
                 };
                 var wrapperTree = {data: [dataTree], parent: null};
                 dataTree.parent = wrapperTree;
+                console.log("MathWrapper: ", wrapperTree.data[0]);
                 parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0]);
             }
             var mode = params.getParam("mode");
@@ -119,10 +120,11 @@ module.exports = function(env) {
 
             var mathComponents = [[]];
             var line_tracker = -1;
+            console.log(dataTree)
             for (var token of dataTree.data) {
                 if (line_tracker == -1)
-                    line_tracker = token.line;
-                else if (line_tracker != token.line) {
+                    line_tracker = this.leftmostToken(token).line;
+                else if (line_tracker != this.leftmostToken(token).line) {
                     mathComponents.push([]);
                     matrix[matrix.length-1].push(curElement);
                     matrix.push([]);
@@ -155,6 +157,7 @@ module.exports = function(env) {
                 };
                 var wrapperTree = {data: [dataTree], parent: null};
                 dataTree.parent = wrapperTree;
+                console.log("WRAPPER: ", wrapperTree.data[0])
                 parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0]);
             }
             var mode = params.getParam("mode");
@@ -195,10 +198,19 @@ module.exports = function(env) {
                 if (ctx.vars["matrices"] == null)
                     ctx.vars["matrices"] = {}
                 ctx.vars["matrices"][varname] = new StoredMatrix(matrix);
+
+                console.log(ctx.vars["matrices"][varname].recall(mmode, this.binaryOperator, this.unaryOperator, this.singleOperator));
             }
-            
+            console.log("ACTUAL: " + "\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}")
             if (params.getParam("hide") == null)
                 buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
+        }
+
+        leftmostToken(treeData) {
+            while (treeData instanceof Token)
+                treeData = treeData.data[0];
+                
+            return treeData;
         }
     }
 
@@ -207,8 +219,28 @@ module.exports = function(env) {
             this.data = data;
         }
 
-        recall(mmode) {
+        recall(mmode, binaryOperator, unaryOperator, singleOperator) {
+            // TODO: Recall mathComponents
+            //console.log("DAT: ", this.data[1][0])
+            //console.log(this.data[2])
 
+            var parsedComponents = [];
+
+            for (var row of this.data) {
+                var parsedRow = [];
+                for (var element of row) {
+                    var dataTree = {
+                        data: element,
+                        parent: null
+                    };
+                    var wrapperTree = {data: [dataTree], parent: null};
+                    dataTree.parent = wrapperTree;
+                    parsedRow.push(pUtils.parseMathTree(wrapperTree, true, binaryOperator, unaryOperator, singleOperator)[0]);
+                }
+                parsedComponents.push(parsedRow.map(cmp => cmp.unwrap()).join("&"));
+            }
+
+            return "\\begin{" + mmode + "}" + parsedComponents.join("\\\\") + "\\end{" + mmode + "}";
         }
     }
 
