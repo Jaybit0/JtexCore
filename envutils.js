@@ -102,6 +102,63 @@ class JtexEnvironment {
         // TODO: Implement
         return ["amsmath"];
     }
+
+    getJtexTemplates() {
+        // Read all folders (not files) in template directory
+        const entries = fs.readdirSync(path.join(this.path, "templates"), { withFileTypes: true });
+        return entries.filter(folder => folder.isDirectory()).map(folder => folder.name);
+    }
+
+    getJtexTemplateFiles(template) {
+        return this.listFiles(path.join(this.path, "templates", template));
+    }
+
+    /**
+     * Makes a template from a JTeX project
+     * @param {string} template The template name
+     * @param {string} directory The directory from the original JTeX project
+     */
+    makeTemplate(template, directory) {
+        const files = this.listFiles(directory);
+        for (const file of files) {
+            const relativePath = path.relative(directory, file);
+
+            // Skip if file lies in the '.compiled/' directory
+            if (relativePath.startsWith(".compiled"))
+                continue;
+
+            // Remove any git files
+            if (relativePath.startsWith(".git"))
+                continue;
+            
+            // Remove .gitignore file
+            if (relativePath === ".gitignore")
+                continue;
+
+            const destPath = path.join(this.path, "templates", template, relativePath);
+            if (!fs.existsSync(path.dirname(destPath)))
+                fs.mkdirSync(path.dirname(destPath), {recursive: true});
+            fs.copyFileSync(file, destPath);
+        }
+    }
+
+    /**
+     * Creates a JTeX project from a template
+     * @param {string} directory The directory to create the project in
+     * @param {string} template The template name
+     * @returns {boolean} Whether the project was created successfully
+     */
+    createProject(directory, template) {
+        const files = this.listFiles(path.join(this.path, "templates", template));
+        for (const file of files) {
+            const relativePath = path.relative(path.join(this.path, "templates", template), file);
+            const destPath = path.join(directory, relativePath);
+            if (!fs.existsSync(path.dirname(destPath)))
+                fs.mkdirSync(path.dirname(destPath), {recursive: true});
+            fs.copyFileSync(file, destPath);
+        }
+        return true;
+    }
 }
 
 exports.JtexEnvironment = JtexEnvironment;

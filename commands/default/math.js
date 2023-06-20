@@ -120,7 +120,6 @@ module.exports = function(env) {
 
             var mathComponents = [[]];
             var line_tracker = -1;
-            console.log(dataTree)
             for (var token of dataTree.data) {
                 if (line_tracker == -1)
                     line_tracker = this.leftmostToken(token).line;
@@ -207,10 +206,22 @@ module.exports = function(env) {
         }
 
         leftmostToken(treeData) {
-            while (treeData instanceof Token)
+            // Something is wrong here
+            while (!(treeData instanceof Token))
                 treeData = treeData.data[0];
                 
             return treeData;
+        }
+
+        flattenTree(treeData) {
+            var result = [];
+            for (var token of treeData.data) {
+                if (token instanceof Token)
+                    result.push(token);
+                else
+                    result.push(...this.flattenTree(token));
+            }
+            return result;
         }
     }
 
