@@ -100,6 +100,7 @@ class Parser {
     parseMain(buffer) {
         if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
             return;
+        var defaultContext = new ParserContext(this);
         do {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
@@ -107,7 +108,7 @@ class Parser {
                 buffer.appendMany(lb);
                 var bufferActive = this.tokenizer.isTokenBufferActive();
                 this.tokenizer.activateTokenBuffer(false);
-                this.parseJtexCommand(buffer);
+                this.parseJtexCommand(buffer, defaultContext);
                 this.tokenizer.activateTokenBuffer(bufferActive);
             }
         } while (this.tokenizer.nextIgnoreWhitespacesAndComments())
@@ -129,7 +130,7 @@ class Parser {
             for (var cmd of this.commandDict[this.tokenizer.current.id]) {
                 if (!cmd.checker(this.tokenizer.current))
                     continue;
-                ctx.push(cmd.name);
+                ctx.ctx.push(cmd.name);
                 var args = {
                     commandToken: this.tokenizer.current
                 };
@@ -142,7 +143,7 @@ class Parser {
                     var tokens = pUtils.tokenizeSubstring(mBuffer.toString(), this.tokenizer.current);
                     this.tokenizer.queueTokens(tokens);
                 }
-                ctx.pop();
+                ctx.ctx.pop();
                 return true;
             }
         }

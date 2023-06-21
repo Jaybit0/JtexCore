@@ -8,6 +8,7 @@ class ParserToken {
     constructor(id) {
         this.id = id;
         this.wraps = 0;
+        this.leftRight = true;
     }
 
     /**
@@ -112,15 +113,30 @@ class ParserToken {
     }
 
     /**
+     * Disables automatic left-right insertion
+     */
+    noLeftRight() {
+        this.leftRight = false;
+        return this;
+    }
+
+    /**
      * Converts the token to a string with respect to the parentheses
      * @returns the token as a string
      */
     toString() {
         var before = "";
         var after = "";
-        for (var i = 0; i < this.wraps; i++) {
-            before += "\\left(";
-            after += "\\right)";
+        if (this.noLeftRight) {
+            for (var i = 0; i < this.wraps; i++) {
+                before += "(";
+                after += ")";
+            }
+        } else {
+            for (var i = 0; i < this.wraps; i++) {
+                before += "\\left(";
+                after += "\\right)";
+            }
         }
         return before + this.data + after;
     }

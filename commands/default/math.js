@@ -5,6 +5,7 @@ module.exports = function(env) {
     const {JtexCommand} = require(path.join(env.base, "commands", "command.js"));
     const pUtils = require(path.join(env.base, "utils", "parser_utils.js"));
     const {Token} = require(path.join(env.base, "tokenizer.js"));
+    const {ParserTokens, ParserToken} = require(path.join(env.base, "parser_token.js"))
 
     class JtexCommandMathInline extends JtexCommand {
         constructor() {
@@ -78,7 +79,6 @@ module.exports = function(env) {
                 };
                 var wrapperTree = {data: [dataTree], parent: null};
                 dataTree.parent = wrapperTree;
-                console.log("MathWrapper: ", wrapperTree.data[0]);
                 parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0]);
             }
             var mode = params.getParam("mode");
@@ -100,6 +100,56 @@ module.exports = function(env) {
             if (ctx.countContextOccurrences(mctx => mctx === "default.math.inline" || mctx === "default.math.block") == 0)
                 throw new ParserError("Cannot use matrix command outside a math environment.").init(args.commandToken);
 
+            var hide = false;
+            var createMatrixFromData = true;
+            var store = [];
+
+            var storedMatrix = null;
+
+            for (var param of params.params) {
+                switch(param.param.data) {
+                    case "store":
+                        store.push(param.args[0]);
+                        break;
+                    case "recall":
+                        createMatrixFromData = false;
+                        storedMatrix = ctx.vars["matrices"][param.args[0]];
+                        break;
+                    case "hide":
+                        hide = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (createMatrixFromData)
+                storedMatrix = this.createMatrixFromData(buffer, ctx);
+            else {
+                console.log(ctx.parser.tokenizer);
+                console.log(ctx.parser.tokenizer.current);
+                //ctx.parser.tokenizer.next();
+                console.log(ctx.parser.tokenizer.current);
+            }
+
+            for (var tostore of store) {
+                var varname = pUtils.stringify(tostore);
+                if (ctx.vars["matrices"] == null)
+                    ctx.vars["matrices"] = {}
+                ctx.vars["matrices"][varname] = storedMatrix;
+            }
+
+            var recalled = storedMatrix.recall(this.getMode(params, args));
+            if (!hide)
+                buffer.append(recalled);
+        }
+
+        /**
+         * Creates a StoredMatrix from the given data
+         * @param {LineBuffer} buffer the line buffer
+         * @param {ParserContext} ctx the parser context
+         * @returns {StoredMatrix} the matrix
+         */
+        createMatrixFromData(buffer, ctx) {
             var allowedBrackets = {};
             allowedBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
             if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.CURLY_BRACKET_OPEN)
@@ -118,29 +168,24 @@ module.exports = function(env) {
             var matrix = [[]];
             var curElement = [];
 
-            var mathComponents = [[]];
             var line_tracker = -1;
             for (var token of dataTree.data) {
                 if (line_tracker == -1)
                     line_tracker = this.leftmostToken(token).line;
                 else if (line_tracker != this.leftmostToken(token).line) {
-                    mathComponents.push([]);
                     matrix[matrix.length-1].push(curElement);
                     matrix.push([]);
                     curElement = [];
                     line_tracker = token.line;
                 }
                 if (token.id == Tokens.SEMICOLON) {
-                    mathComponents.push([]);
                     matrix[matrix.length-1].push(curElement);
                     matrix.push([]);
                     curElement = [];
                 } else if (token.id == Tokens.COMMA) {
-                    mathComponents[mathComponents.length-1].push(new Token(Tokens.ANY).initFrom(token).withData("&"));
                     matrix[matrix.length-1].push(curElement);
                     curElement = [];
                 } else {
-                    mathComponents[mathComponents.length-1].push(token);
                     curElement.push(token);
                 }
             }
@@ -148,17 +193,16 @@ module.exports = function(env) {
             if (matrix[matrix.length-1].length == 0)
                 matrix.pop();
 
-            var parsedComponents = [];
-            for (var component of mathComponents) {
-                var dataTree = {
-                    data: component,
-                    parent: null
-                };
-                var wrapperTree = {data: [dataTree], parent: null};
-                dataTree.parent = wrapperTree;
-                console.log("WRAPPER: ", wrapperTree.data[0])
-                parsedComponents.push(pUtils.parseMathTree(wrapperTree, true, this.binaryOperator, this.unaryOperator, this.singleOperator)[0]);
-            }
+            return new StoredMatrix(matrix);
+        }
+
+        /**
+         * Gets the matrix mode
+         * @param {string[]} params the command parameters
+         * @param {string[]} args the command arguments
+         * @returns {string} the matrix mode
+         */
+        getMode(params, args) {
             var mode = params.getParam("mode");
 
             var cmd = args.commandToken;
@@ -190,68 +234,80 @@ module.exports = function(env) {
 
             if (mode != null)
                 mmode = pUtils.stringify(mode.args[0]);
-
-            var store = params.getParam("store");
-            if (store != null) {
-                var varname = pUtils.stringify(store.args[0]);
-                if (ctx.vars["matrices"] == null)
-                    ctx.vars["matrices"] = {}
-                ctx.vars["matrices"][varname] = new StoredMatrix(matrix);
-
-                console.log(ctx.vars["matrices"][varname].recall(mmode, this.binaryOperator, this.unaryOperator, this.singleOperator));
-            }
-            console.log("ACTUAL: " + "\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}")
-            if (params.getParam("hide") == null)
-                buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
+            return mmode;
         }
 
+        /**
+         * Gets the leftmost token of the data tree
+         * @param {*} treeData the data tree
+         * @returns the leftmost token of the tree
+         */
         leftmostToken(treeData) {
-            // Something is wrong here
             while (!(treeData instanceof Token))
                 treeData = treeData.data[0];
                 
             return treeData;
         }
-
-        flattenTree(treeData) {
-            var result = [];
-            for (var token of treeData.data) {
-                if (token instanceof Token)
-                    result.push(token);
-                else
-                    result.push(...this.flattenTree(token));
-            }
-            return result;
-        }
     }
 
+    /**
+     * The internal representation of a matrix
+     */
     class StoredMatrix {
         constructor(data) {
             this.data = data;
         }
 
-        recall(mmode, binaryOperator, unaryOperator, singleOperator) {
-            // TODO: Recall mathComponents
-            //console.log("DAT: ", this.data[1][0])
-            //console.log(this.data[2])
-
+        /**
+         * Recalls a matrix as a string
+         * @param {string} mmode the matrix mode put in \begin{mode} ... \end{mode}
+         * @returns 
+         */
+        recall(mmode) {
             var parsedComponents = [];
 
             for (var row of this.data) {
                 var parsedRow = [];
                 for (var element of row) {
-                    var dataTree = {
-                        data: element,
-                        parent: null
-                    };
-                    var wrapperTree = {data: [dataTree], parent: null};
-                    dataTree.parent = wrapperTree;
-                    parsedRow.push(pUtils.parseMathTree(wrapperTree, true, binaryOperator, unaryOperator, singleOperator)[0]);
+                    var flattened = this.#unwrapAndFlattenTree(element);
+                    if (flattened.length == 1)
+                        flattened[0].unwrap();
+                    parsedRow.push(flattened.join(""));
                 }
-                parsedComponents.push(parsedRow.map(cmp => cmp.unwrap()).join("&"));
+                parsedComponents.push(parsedRow.join("&"));
             }
 
             return "\\begin{" + mmode + "}" + parsedComponents.join("\\\\") + "\\end{" + mmode + "}";
+        }
+
+        /**
+         * TODO: Allow other JTeX-Commands
+         * Unwraps and flattens the bracket tree.
+         * 
+         * @param {*} tree 
+         * @param {int} layers 
+         * @returns a list of parser tokens
+         */
+        #unwrapAndFlattenTree(tree, layers=1) {
+            if (tree instanceof Token)
+                return [tree];
+
+            var result = [];
+
+            for (var token of tree) {
+                if (token instanceof Token)
+                    result.push(new ParserToken(-1).fromLexerToken(token));
+                else {
+                    var flattened = this.#unwrapAndFlattenTree(token.data, layers-1);
+                    var tk = new ParserToken(ParserTokens.STRING).withData(flattened.join("")).at(flattened[0].beginToken, flattened[flattened.length-1].endToken).noLeftRight().wrap();
+                    result.push(tk);
+                }
+            }
+
+            if (layers > 0 && result.length == 1)
+                result[0].unwrap();
+
+            return result;
         }
     }
 
