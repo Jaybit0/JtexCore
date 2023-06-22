@@ -84,6 +84,14 @@ class Tokenizer {
   }
 
   /**
+   * Adds multiple tokens to the front of the token-queue.
+   * @param {Token[]} tokens 
+   */
+  queueTokensAtFront(tokens) {
+    this.tokenQueue.unshift(...tokens);
+  }
+
+  /**
    * Moves to the next token that isn't a whitespace.
    * @returns whether the next token is not EOF
    */
@@ -101,6 +109,14 @@ class Tokenizer {
       this.current.id == Tokens.WHITESPACE ||
       this.current.id == Tokens.COMMENT ||
       this.current.id == Tokens.BLOCK_COMMENT
+    );
+  }
+
+  isTokenWhitespaceOrComment(token) {
+    return (
+      token.id == Tokens.WHITESPACE ||
+      token.id == Tokens.COMMENT ||
+      token.id == Tokens.BLOCK_COMMENT
     );
   }
 
@@ -191,6 +207,14 @@ class Token {
     this.len = data.length;
     this.data = data;
     return this;
+  }
+
+  /**
+   * 
+   * @returns the number of linebreaks in the token data
+   */
+  countLinebreaks() {
+    return (this.data.match(/\n/g) || []).length;
   }
 
   /**

@@ -140,8 +140,16 @@ class Parser {
                 } else {
                     var mBuffer = new LineBuffer();
                     cmd.handler(mBuffer, ctx, cmdParams, args);
+                    console.log("BUFFER:", mBuffer.toString());
                     var tokens = pUtils.tokenizeSubstring(mBuffer.toString(), this.tokenizer.current);
-                    this.tokenizer.queueTokens(tokens);
+                    // TODO: Check if this does not break anything
+                    // This is necessary as the command handler might queue tokens
+                    // If e.g. optional parameters are parsed, the tokenizer will queue the following token
+                    // This will mess up the token order 
+                    // This fix could break future code as sub-commands might queue tokens
+                    // This could maybe be prevented by providing a virtual context with an isolated token-queue which is then merged with the main queue
+                    //this.tokenizer.queueTokens(tokens);
+                    this.tokenizer.queueTokensAtFront(tokens);
                 }
                 ctx.ctx.pop();
                 return true;

@@ -125,10 +125,10 @@ module.exports = function(env) {
             if (createMatrixFromData)
                 storedMatrix = this.createMatrixFromData(buffer, ctx);
             else {
-                console.log(ctx.parser.tokenizer);
-                console.log(ctx.parser.tokenizer.current);
+                //console.log(ctx.parser.tokenizer);
+                //console.log(ctx.parser.tokenizer.current);
                 //ctx.parser.tokenizer.next();
-                console.log(ctx.parser.tokenizer.current);
+                //console.log(ctx.parser.tokenizer.current);
             }
 
             for (var tostore of store) {
@@ -168,30 +168,61 @@ module.exports = function(env) {
             var matrix = [[]];
             var curElement = [];
 
-            var line_tracker = -1;
             for (var token of dataTree.data) {
-                if (line_tracker == -1)
-                    line_tracker = this.leftmostToken(token).line;
-                else if (line_tracker != this.leftmostToken(token).line) {
-                    matrix[matrix.length-1].push(curElement);
-                    matrix.push([]);
-                    curElement = [];
-                    line_tracker = token.line;
-                }
-                if (token.id == Tokens.SEMICOLON) {
-                    matrix[matrix.length-1].push(curElement);
-                    matrix.push([]);
-                    curElement = [];
-                } else if (token.id == Tokens.COMMA) {
-                    matrix[matrix.length-1].push(curElement);
-                    curElement = [];
+                if (token instanceof Token) {
+                    if (token.id == Tokens.WHITESPACE && token.countLinebreaks() > 0) {
+                        matrix[matrix.length-1].push(curElement);
+                        matrix.push([]);
+                        curElement = [];
+                    }
+
+                    if (token.id == Tokens.SEMICOLON) {
+                        matrix[matrix.length-1].push(curElement);
+                        matrix.push([]);
+                        curElement = [];
+                    } else if (token.id == Tokens.COMMA) {
+                        matrix[matrix.length-1].push(curElement);
+                        curElement = [];
+                    } else {
+                        curElement.push(token);
+                    }
                 } else {
                     curElement.push(token);
-                }
+                }  
             }
+
+            if (curElement.length != 0)
+                matrix[matrix.length-1].push(curElement);
 
             if (matrix[matrix.length-1].length == 0)
                 matrix.pop();
+
+            // Smart remove empty rows
+            var emptyRows = [];
+            for (var i = 0; i < matrix.length; i++) {
+                var row = matrix[i];
+                var empty = false;
+
+                if (row.length == 0)
+                    empty = true;
+                else if (row.length == 1) {
+                    empty = true;
+                    for (var element of row[0]) {
+                        if (!(element instanceof Token) || !ctx.parser.tokenizer.isTokenWhitespaceOrComment(element)) {
+                            empty = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if (empty)
+                    emptyRows.push(i);
+            }
+            
+            for (var i = emptyRows.length-1; i >= 0; i--)
+                matrix.splice(emptyRows[i], 1);
+
+            console.log(matrix[0]);
 
             return new StoredMatrix(matrix);
         }
