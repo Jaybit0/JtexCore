@@ -166,8 +166,7 @@ module.exports = function(env) {
             }
 
             var recalled = storedMatrix.recall(this.getMode(params, args));
-            console.log("RECALLED:", recalled)
-            console.log("HIDE:", hide)
+            
             if (!hide)
                 buffer.append(recalled);
         }
