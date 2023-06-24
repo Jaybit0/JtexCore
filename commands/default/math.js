@@ -109,12 +109,18 @@ module.exports = function(env) {
             for (var param of params.params) {
                 switch(param.param.data) {
                     case "store":
-                        store.push(param.args[0]);
+                        try {
+                            store.push(this.#readVarnameParameter(ctx, param.args[0]));
+                        } catch (e) {
+                            throw new ParserError("Could not parse matrix store-variable: " + e.message).init(param.args[0]);
+                        }
                         break;
+
                     case "recall":
                         createMatrixFromData = false;
-                        storedMatrix = ctx.vars["matrices"][param.args[0]];
+                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args[0])];
                         break;
+
                     case "empty":
                         createMatrixFromData = false;
                         try {
@@ -126,6 +132,7 @@ module.exports = function(env) {
                             throw new ParserError("Could not parse matrix dimensions: " + e.message).init(param.args[0]);
                         }
                         break;
+
                     case "set":
                         createMatrixFromData = false;
                         if (storedMatrix == null)
@@ -139,6 +146,7 @@ module.exports = function(env) {
                             throw new ParserError("Could not parse matrix set-coordinates: " + e.message).init(param.args[0]);
                         }
                         break;
+
                     case "fill":
                         createMatrixFromData = false;
                         if (storedMatrix == null)
@@ -148,9 +156,25 @@ module.exports = function(env) {
                         // TODO: Handle nested expressions -> Maybe stringify the whole parameter and parse it again
                         storedMatrix.fill(param.args[0]);
                         break;
+
                     case "hide":
                         hide = true;
                         break;
+
+                    case "setblock":
+                        createMatrixFromData = false;
+                        if (storedMatrix == null)
+                            throw new ParserError("Cannot set block. No matrix has been initialized.").init(param.param);
+                        try {
+                            var x = this.#readNumericParameter(ctx, param.args[0]);
+                            var y = this.#readNumericParameter(ctx, param.args[1]);
+                            var matrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args[2])];
+                            storedMatrix.setblock(x, y, matrix);
+                        } catch (e) {
+                            throw new ParserError("Could not parse matrix setblock-coordinates: " + e.message).init(param.args[0]);
+                        }
+                        break;
+
                     default:
                         throw new ParserError("Unknown matrix parameter: " + param.param.data).init(param.param);
                 }
@@ -166,7 +190,7 @@ module.exports = function(env) {
             }
 
             var recalled = storedMatrix.recall(this.getMode(params, args));
-            
+
             if (!hide)
                 buffer.append(recalled);
         }
@@ -333,6 +357,34 @@ module.exports = function(env) {
 
             return number;
         }
+
+        /**
+         * Reads a variable name parameter from a given argument
+         * @param {ParserContext} ctx 
+         * @param {object[]} arg 
+         * @returns 
+         */
+        #readVarnameParameter(ctx, arg) {
+            var varname = null;
+            for (var token of arg) {
+                if (!(token instanceof Token))
+                    throw new ParserError("Expected a variable name. Cannot handle nested expressions here").init(token);
+                if (ctx.parser.tokenizer.isTokenWhitespaceOrComment(token))
+                    continue;
+                if (varname != null)
+                    throw new ParserError("Expected a variable name. Given another token after the variable name has been initialized: " + token.data).init(token);
+
+                if (token.id != Tokens.VARNAME)
+                    throw new ParserError("Expected a variable name as matrix dimension. Given: " + token.data).init(token);
+
+                varname = token.data;
+            }
+
+            if (varname == null)
+                throw new ParserError("Expected a variable name. Given empty parameter.").init(param.args[0]);
+
+            return varname;
+        }
     }
 
     /**
@@ -384,6 +436,14 @@ module.exports = function(env) {
                 for (var i = 0; i < row.length; i++) {
                     if (row[i].length == 0)
                         row[i] = fillToken;
+                }
+            }
+        }
+
+        setblock(x, y, matrix) {
+            for (var i = 0; i < matrix.data.length; i++) {
+                for (var j = 0; j < matrix.data[i].length; j++) {
+                    this.data[y+i][x+j] = matrix.data[i][j];
                 }
             }
         }
