@@ -85,14 +85,6 @@ class Tokenizer {
   }
 
   /**
-   * Adds multiple tokens to the front of the token-queue.
-   * @param {Token[]} tokens 
-   */
-  /*queueTokensAtFront(tokens) {
-    this.tokenQueue.unshift(...tokens);
-  }*/
-
-  /**
    * Moves to the next token that isn't a whitespace.
    * @returns whether the next token is not EOF
    */

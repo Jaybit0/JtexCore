@@ -135,9 +135,14 @@ function parseOptionalParameters(buffer, ctx, allowCommands=true) {
  * @returns the parsed optional parameter or null if not available
  */
 function parseOptionalParameter(buffer, ctx, allowCommands=true) {
-    // TODO: Ignored whitespaces must be put into the token-queue as well
-    if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.DOT) {
-        ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
+    var localTokenQueue = [];
+    while (ctx.parser.tokenizer.next()) {
+        localTokenQueue.push(ctx.parser.tokenizer.current);
+        if (!ctx.parser.tokenizer.currentTokenWhitespaceOrComment())
+            break;
+    }
+    if (ctx.parser.tokenizer.current.id != Tokens.DOT) {
+        ctx.parser.tokenizer.queueTokens(localTokenQueue);
         return null;
     }
     if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.VARNAME) 
