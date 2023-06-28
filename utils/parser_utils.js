@@ -61,20 +61,25 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
  * @param {function(any, Token[], int, function(int): int): boolean} binaryOperators the binary-operator handler-function
  * @param {function(any, Token[], int, function(int): int): boolean} unaryOperators the unary-operator handler-function
  * @param {function(any, Token[], int, function(int): int): boolean} singleOperators the single-operator handler-function
+ * @param {Array<Token>} tokenBuffer the token buffer that contains the original tokens as a sequential list
  * @returns an array of output-tokens
  */
-function parseMathTree(parse_tree, inline, binaryOperators, unaryOperators, singleOperators) {
+function parseMathTree(parse_tree, inline, binaryOperators, unaryOperators, singleOperators, tokenBuffer = null) {
     var preprocessed_parse_tree = [];
     var parse_stack = [];
 
     // Preprocess data by parsing subtrees
     for (var i = 0; i < parse_tree.data.length; i++) {
         if (parse_tree.data[i] instanceof Token) {
-            preprocessed_parse_tree.push(new ParserToken(-1).fromLexerToken(parse_tree.data[i]));
+            var parserToken = new ParserToken(-1).fromLexerToken(parse_tree.data[i]);
+            preprocessed_parse_tree.push(parserToken);
+            tokenBuffer?.append(parserToken);
         } else {
-            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, unaryOperators, singleOperators);
+            var parsed = parseMathTree(parse_tree.data[i], inline, binaryOperators, unaryOperators, singleOperators, tokenBuffer);
             var data = parsed.map(tk => tk.toString()).join("");
-            preprocessed_parse_tree.push(new ParserToken(ParserTokens.STRING).withData(data).at(parsed[0].beginToken, parsed[parsed.length-1].endToken).wrap());
+            var parserToken = new ParserToken(ParserTokens.STRING).withData(data).at(parsed[0].beginToken, parsed[parsed.length-1].endToken).wrap();
+            preprocessed_parse_tree.push(parserToken);
+            tokenBuffer?.append(parserToken);
         }
     }
     
