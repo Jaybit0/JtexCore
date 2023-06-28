@@ -135,7 +135,7 @@ class Parser {
                     commandToken: this.tokenizer.current
                 };
 
-                var cmdParams = new ParameterList(pUtils.parseOptionalParameters(buffer, ctx, true));
+                var cmdParams = new ParameterList(pUtils.parseOptionalParameters(buffer, ctx));
                 
                 if (ctx.ctx.length == 1) {
                     cmd.handler(buffer, ctx, cmdParams, args);

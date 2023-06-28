@@ -15,9 +15,13 @@ defaultBrackets[Tokens.SQUARE_BRACKET_OPEN] = Tokens.SQUARE_BRACKET_CLOSED;
  * @param {function(Token): boolean} endChecker a function that checks whether the current token indicates the end of the tree
  * @param {boolean} allowCommands whether commands should be interpreted
  * @param {any} brackets a map of opening and closing brackets (example: {'(': ')'})
+ * @param {Array<Token>} tokenBuffer the token buffer that contains the original tokens as a sequential list
  * @returns the bracket-tree of the form {'data': [token1, tree-node, token2, ...], 'parent': parent-tree-node}
  */
-function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, brackets = defaultBrackets) {
+function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, brackets = defaultBrackets, tokenBuffer = null) {
+    if (tokenBuffer != null && allowCommands)
+        throw new ParserError("Cannot buffer tokens and parse JTeX-Commands at the same time! This would lead to bugs in the parser and is therefore prohibited.");
+
     var bracketStack = [];
     var dataTree = {data: [], parent: null};
     var current = dataTree;
@@ -25,6 +29,8 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
     while (ctx.parser.tokenizer.next()) {
         if (allowCommands && ctx.parser.parseJtexCommand(buffer, ctx))
             continue;
+        if (tokenBuffer != null)
+            tokenBuffer.push(ctx.parser.tokenizer.current);
         if (ctx.parser.tokenizer.current.id in brackets) {
             bracketStack.push(ctx.parser.tokenizer.current.id);
             var subTree = {data: [], parent: current, bracket: ctx.parser.tokenizer.current.id};
@@ -38,6 +44,9 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
 
             bracketStack.pop();
             current = current.parent;
+        } else if (bracketStack.length == 0 && endChecker(ctx.parser.tokenizer.current)) {
+            // current.data.pop();
+            break;
         } else if (Object.values(brackets).includes(ctx.parser.tokenizer.current.id)) {
             throw new ParserError("Unexpected bracket while parsing the bracket-tree: " + ctx.parser.tokenizer.current.data)
                 .init(ctx.parser.tokenizer.current);
@@ -45,11 +54,16 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
             current.data.push(ctx.parser.tokenizer.current);
         }
 
-        if (bracketStack.length == 0 && endChecker(ctx.parser.tokenizer.current)) {
+        console.log(ctx.parser.tokenizer.current);
+        console.log(bracketStack)
+        console.log(brackets)
+        /*if (bracketStack.length == 0 && endChecker(ctx.parser.tokenizer.current)) {
             current.data.pop();
             break;
-        }
+        }*/
     }
+
+    console.log("HERE", tokenBuffer);
 
     return dataTree;
 }
@@ -119,12 +133,11 @@ function tokenizeSubstring(str, refToken) {
  * Parses many optional parameters.
  * @param {LineBuffer} buffer a line-buffer
  * @param {ParserContext} ctx the parser-context
- * @param {boolean} allowCommands whether the argument-tuples should execute commands within their bodies
  * @returns a list of parsed optional parameters
  */
-function parseOptionalParameters(buffer, ctx, allowCommands=true) {
+function parseOptionalParameters(buffer, ctx) {
     var params = [];
-    for (var param = parseOptionalParameter(buffer, ctx, allowCommands); param != null; param = parseOptionalParameter(buffer, ctx, allowCommands)) {
+    for (var param = parseOptionalParameter(buffer, ctx); param != null; param = parseOptionalParameter(buffer, ctx)) {
         params.push(param);
     }
     return params;
@@ -136,10 +149,9 @@ function parseOptionalParameters(buffer, ctx, allowCommands=true) {
  * tokenizer-state will be restored to the next token.
  * @param {LineBuffer} buffer a line-buffer
  * @param {ParserContext} ctx the parser-context
- * @param {boolean} allowCommands whether the argument-tuple should execute commands within its body
  * @returns the parsed optional parameter or null if not available
  */
-function parseOptionalParameter(buffer, ctx, allowCommands=true) {
+function parseOptionalParameter(buffer, ctx) {
     var localTokenQueue = [];
     while (ctx.parser.tokenizer.next()) {
         localTokenQueue.push(ctx.parser.tokenizer.current);
@@ -153,26 +165,28 @@ function parseOptionalParameter(buffer, ctx, allowCommands=true) {
     if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.VARNAME) 
         throw new ParserError("Expected optional parameter after dot.").init(ctx.parser.tokenizer.current);
     var param = ctx.parser.tokenizer.current;
-    var tuple = parseTuple(buffer, ctx, allowCommands);
+    var tuple = parseTuple(buffer, ctx);
     return {"param": param, "args": tuple == null ? [] : tuple};
 }
 
+// TODO: Buffer tokens to be able to return the arguments as a string / list of parser tokens
 /**
  * Parses a tuple.
  * @param {LineBuffer} buffer a line-buffer
  * @param {ParserContext} ctx the parser-context
- * @param {boolean} allowCommands whether the tuple should execute commands within its body
  * @returns the parsed tuple or null if not available
  */
-function parseTuple(buffer, ctx, allowCommands=true) {
+function parseTuple(buffer, ctx) {
     if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments() || ctx.parser.tokenizer.current.id != Tokens.PARENTHESIS_OPEN) {
         ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
         return null;
     }
     //ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
     var brackets = {};
-    brackets[Tokens.PARENTHESIS_OPEN] = brackets[Tokens.PARENTHESIS_CLOSED];
-    var tree = buildBracketTree(buffer, ctx, tk => tk.id == Tokens.PARENTHESIS_CLOSED, allowCommands, brackets);
+    var tokenBuffer = [];
+    brackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
+    var tree = buildBracketTree(buffer, ctx, tk => tk.id == Tokens.PARENTHESIS_CLOSED, false, brackets, tokenBuffer);
+    console.log(tokenBuffer);
     return _parseTupleFromTree(tree);
 }
 
@@ -192,9 +206,18 @@ function stringify(tokens) {
 /**
  * Parses a tuple from a bracket-tree created by buildBracketTree.
  * @param {object} tree the bracket-tree
+ * @param {boolean} separateBuffer if the buffer should be separated into layer 0 entries of the tuple
+ * @param {Array} buffer the current token buffe - should be null if called for the first time
  * @returns the resolved tuple
  */
-function _parseTupleFromTree(tree) {
+function _parseTupleFromTree(tree, separateBuffer = true, buffer = null) {
+    // If in tuple depth is zero, the buffer should be split into the individual arguments
+    // All deeper layers should not be separated but saved as a token list
+    separateBuffer = separateBuffer && (buffer == null);
+
+    if (buffer == null) 
+        buffer = [];
+
     var mData = [];
     var mCurElement = [];
     for (var i = 0; i < tree.data.length; i++) {
@@ -202,11 +225,17 @@ function _parseTupleFromTree(tree) {
             if (tree.data[i].id == Tokens.COMMA) {
                 mData.push(mCurElement);
                 mCurElement = [];
+
+                if (separateBuffer)
+                    buffer.push([]);
+                else
+                    buffer.push(tree.data[i]);
             } else {
                 mCurElement.push(tree.data[i]);
+                buffer.push(tree.data[i]);
             }
         } else {
-            mCurElement.push(_parseTupleFromTree(tree.data[i]));
+            mCurElement.push(_parseTupleFromTree(tree.data[i], false, buffer));
         }
     }
     mData.push(mCurElement);

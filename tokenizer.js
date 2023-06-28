@@ -50,6 +50,7 @@ class Tokenizer {
 
       if (this.tokenBufferActive && this.current.id != Tokens.EOF)
         this.tokenBuffer.push(this.current);
+
       return this.current.id != Tokens.EOF;
     }
     const last = this.current;
@@ -64,6 +65,7 @@ class Tokenizer {
 
     if (this.tokenBufferActive && this.current.id != Tokens.EOF)
       this.tokenBuffer.push(this.current);
+
     return this.current.id != Tokens.EOF;
   }
 
