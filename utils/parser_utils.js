@@ -228,43 +228,6 @@ function stringify(tokens) {
     return str;
 }
 
-/**
- * Parses a tuple from a bracket-tree created by buildBracketTree.
- * @param {object} tree the bracket-tree
- * @returns the resolved tuple
- */
-function _parseTupleFromTree(tree, tokenBuffer, linker) {
-    // If in tuple depth is zero, the buffer should be split into the individual arguments
-    // All deeper layers should not be separated but saved as a token list
-    separateBuffer = separateBuffer && (buffer == null);
-
-    if (buffer == null) 
-        buffer = [];
-
-    var mData = [];
-    var mCurElement = [];
-    for (var i = 0; i < tree.data.length; i++) {
-        if (tree.data[i] instanceof Token) {
-            if (tree.data[i].id == Tokens.COMMA) {
-                mData.push(mCurElement);
-                mCurElement = [];
-
-                if (separateBuffer)
-                    buffer.push([]);
-                else
-                    buffer.push(tree.data[i]);
-            } else {
-                mCurElement.push(tree.data[i]);
-                buffer.push(tree.data[i]);
-            }
-        } else {
-            mCurElement.push(_parseTupleFromTree(tree.data[i], false, buffer));
-        }
-    }
-    mData.push(mCurElement);
-    return new Tuple(mdata);
-}
-
 exports.buildBracketTree = buildBracketTree;
 exports.parseMathTree = parseMathTree;
 exports.tokenizeSubstring = tokenizeSubstring;
