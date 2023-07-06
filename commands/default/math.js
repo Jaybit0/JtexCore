@@ -84,7 +84,7 @@ module.exports = function(env) {
             var mode = params.getParam("mode");
             var mmode = "align*";
             if (mode != null)
-                mmode = pUtils.stringify(mode.args[0]);
+                mmode = pUtils.stringify(mode.args.get(0).tokenize());
             buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
         }
     }
@@ -110,26 +110,26 @@ module.exports = function(env) {
                 switch(param.param.data) {
                     case "store":
                         try {
-                            store.push(this.#readVarnameParameter(ctx, param.args[0]));
+                            store.push(this.#readVarnameParameter(ctx, param.args.get(0).tokenize()));
                         } catch (e) {
-                            throw new ParserError("Could not parse matrix store-variable: " + e.message).init(param.args[0]);
+                            throw new ParserError("Could not parse matrix store-variable: " + e.message).init(param.args.get(0).tokenize());
                         }
                         break;
 
                     case "recall":
                         createMatrixFromData = false;
-                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args[0])];
+                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(0).tokenize())];
                         break;
 
                     case "empty":
                         createMatrixFromData = false;
                         try {
-                            var dimX = this.#readNumericParameter(ctx, param.args[0]);
-                            var dimY = this.#readNumericParameter(ctx, param.args[1]);
+                            var dimX = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
+                            var dimY = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
                             storedMatrix = new StoredMatrix();
                             storedMatrix.empty(dimX, dimY);
                         } catch (e) {
-                            throw new ParserError("Could not parse matrix dimensions: " + e.message).init(param.args[0]);
+                            throw new ParserError("Could not parse matrix dimensions: " + e.message).init(param.args.get(0).tokenize());
                         }
                         break;
 
@@ -138,12 +138,12 @@ module.exports = function(env) {
                         if (storedMatrix == null)
                             throw new ParserError("Cannot set at matrix coordinates. No matrix has been initialized.").init(param.param);
                         try {
-                            var x = this.#readNumericParameter(ctx, param.args[0]);
-                            var y = this.#readNumericParameter(ctx, param.args[1]);
-                            var data = param.args[2];
+                            var x = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
+                            var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
+                            var data = param.args.get(2).tokenize();
                             storedMatrix.set(x, y, data);
                         } catch (e) {
-                            throw new ParserError("Could not parse matrix set-coordinates: " + e.message).init(param.args[0]);
+                            throw new ParserError("Could not parse matrix set-coordinates: " + e.message).init(param.args.get(0).tokenize());
                         }
                         break;
 
@@ -151,10 +151,10 @@ module.exports = function(env) {
                         createMatrixFromData = false;
                         if (storedMatrix == null)
                             throw new ParserError("Cannot fill any parameters. No matrix has been initialized.").init(param.param);
-                        if (param.args.length != 1 || param.args[0].length == 0)
+                        if (param.args.length != 1 || param.args.get(0).tokenize().length == 0)
                             throw new ParserError("Expected one parameter for fill. Given: 0").init(param.param);
                         // TODO: Handle nested expressions -> Maybe stringify the whole parameter and parse it again
-                        storedMatrix.fill(param.args[0]);
+                        storedMatrix.fill(param.args.get(0).tokenize());
                         break;
 
                     case "hide":
@@ -166,12 +166,12 @@ module.exports = function(env) {
                         if (storedMatrix == null)
                             throw new ParserError("Cannot set block. No matrix has been initialized.").init(param.param);
                         try {
-                            var x = this.#readNumericParameter(ctx, param.args[0]);
-                            var y = this.#readNumericParameter(ctx, param.args[1]);
-                            var matrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args[2])];
+                            var x = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
+                            var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
+                            var matrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(2).tokenize())];
                             storedMatrix.setblock(x, y, matrix);
                         } catch (e) {
-                            throw new ParserError("Could not parse matrix setblock-coordinates: " + e.message).init(param.args[0]);
+                            throw new ParserError("Could not parse matrix setblock-coordinates: " + e.message).init(param.args.get(0).tokenize());
                         }
                         break;
 
@@ -314,7 +314,7 @@ module.exports = function(env) {
             }
 
             if (mode != null)
-                mmode = pUtils.stringify(mode.args[0]);
+                mmode = pUtils.stringify(mode.args.get(0).tokenize());
             return mmode;
         }
 
@@ -353,7 +353,7 @@ module.exports = function(env) {
             }
 
             if (number == null)
-                throw new ParserError("Expected a number. Given empty parameter.").init(param.args[0]);
+                throw new ParserError("Expected a number. Given empty parameter.").init(param.args.get(0).tokenize());
 
             return number;
         }
@@ -381,7 +381,7 @@ module.exports = function(env) {
             }
 
             if (varname == null)
-                throw new ParserError("Expected a variable name. Given empty parameter.").init(param.args[0]);
+                throw new ParserError("Expected a variable name. Given empty parameter.").init(param.args.get(0).tokenize());
 
             return varname;
         }

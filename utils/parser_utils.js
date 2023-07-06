@@ -2,6 +2,8 @@ const {Token, Tokenizer} = require("../tokenizer.js");
 const {ParserToken, ParserTokens} = require("../parser_token.js");
 const { Tokens } = require("../constants.js");
 const { ParserError } = require("../errors/parser_error.js");
+const { Tuple } = require("../datastructures/Tuple.js");
+const { TokenCollection } = require("../datastructures/TokenCollection.js");
 
 var defaultBrackets = {};
 defaultBrackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
@@ -18,9 +20,11 @@ defaultBrackets[Tokens.SQUARE_BRACKET_OPEN] = Tokens.SQUARE_BRACKET_CLOSED;
  * @param {Array<Token>} tokenBuffer the token buffer that contains the original tokens as a sequential list
  * @returns the bracket-tree of the form {'data': [token1, tree-node, token2, ...], 'parent': parent-tree-node}
  */
-function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, brackets = defaultBrackets, tokenBuffer = null) {
+function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, brackets = defaultBrackets, tokenBuffer = null, linker = null) {
     if (tokenBuffer != null && allowCommands)
         throw new ParserError("Cannot buffer tokens and parse JTeX-Commands at the same time! This would lead to bugs in the parser and is therefore prohibited.");
+    if (linker != null && tokenBuffer == null)
+        throw new ParserError("Cannot use linker without token buffer!");
 
     var bracketStack = [];
     var dataTree = {data: [], parent: null};
@@ -29,8 +33,7 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
     while (ctx.parser.tokenizer.next()) {
         if (allowCommands && ctx.parser.parseJtexCommand(buffer, ctx))
             continue;
-        if (tokenBuffer != null)
-            tokenBuffer.push(ctx.parser.tokenizer.current);
+
         if (ctx.parser.tokenizer.current.id in brackets) {
             bracketStack.push(ctx.parser.tokenizer.current.id);
             var subTree = {data: [], parent: current, bracket: ctx.parser.tokenizer.current.id};
@@ -54,16 +57,11 @@ function buildBracketTree(buffer, ctx, endChecker, allowCommands = true, bracket
             current.data.push(ctx.parser.tokenizer.current);
         }
 
-        console.log(ctx.parser.tokenizer.current);
-        console.log(bracketStack)
-        console.log(brackets)
-        /*if (bracketStack.length == 0 && endChecker(ctx.parser.tokenizer.current)) {
-            current.data.pop();
-            break;
-        }*/
+        if (tokenBuffer != null)
+            tokenBuffer.push(ctx.parser.tokenizer.current);
+        if (linker != null && bracketStack.length == 0)
+            linker.push(tokenBuffer.length-1);
     }
-
-    console.log("HERE", tokenBuffer);
 
     return dataTree;
 }
@@ -169,7 +167,6 @@ function parseOptionalParameter(buffer, ctx) {
     return {"param": param, "args": tuple == null ? [] : tuple};
 }
 
-// TODO: Buffer tokens to be able to return the arguments as a string / list of parser tokens
 /**
  * Parses a tuple.
  * @param {LineBuffer} buffer a line-buffer
@@ -181,13 +178,41 @@ function parseTuple(buffer, ctx) {
         ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
         return null;
     }
-    //ctx.parser.tokenizer.queueToken(ctx.parser.tokenizer.current);
-    var brackets = {};
-    var tokenBuffer = [];
-    brackets[Tokens.PARENTHESIS_OPEN] = Tokens.PARENTHESIS_CLOSED;
-    var tree = buildBracketTree(buffer, ctx, tk => tk.id == Tokens.PARENTHESIS_CLOSED, false, brackets, tokenBuffer);
-    console.log(tokenBuffer);
-    return _parseTupleFromTree(tree);
+    var dataStack = [[new TokenCollection([ctx.parser.tokenizer.current], true)]];
+    var entryStack = [[]];
+    var curEntry = entryStack[0];
+    while (ctx.parser.tokenizer.next()) {
+        switch (ctx.parser.tokenizer.current.id) {
+            case Tokens.PARENTHESIS_OPEN:
+                curEntry = [];
+                entryStack.push(curEntry);
+                dataStack.push([]);
+                dataStack[dataStack.length-1].push(new TokenCollection([ctx.parser.tokenizer.current], true));
+                break;
+            case Tokens.PARENTHESIS_CLOSED:
+                if (curEntry.length != 0)
+                    dataStack[dataStack.length-1].push(new TokenCollection(entryStack.pop()));
+
+                dataStack[dataStack.length-1].push(new TokenCollection([ctx.parser.tokenizer.current], true));
+                var curStack = dataStack.pop();
+                if (dataStack.length == 0) {
+                    return new Tuple(curStack);
+                } else {
+                    curEntry = entryStack[entryStack.length-1];
+                    curEntry.push(new Tuple(curStack));
+                    break;
+                }
+            case Tokens.COMMA:
+                dataStack[dataStack.length-1].push(new TokenCollection(entryStack.pop()));
+                dataStack[dataStack.length-1].push(new TokenCollection([ctx.parser.tokenizer.current], true));
+                curEntry = [];
+                entryStack.push(curEntry);
+                break;
+            default:
+                curEntry.push(ctx.parser.tokenizer.current);
+                break;
+        }
+    }
 }
 
 /**
@@ -206,11 +231,9 @@ function stringify(tokens) {
 /**
  * Parses a tuple from a bracket-tree created by buildBracketTree.
  * @param {object} tree the bracket-tree
- * @param {boolean} separateBuffer if the buffer should be separated into layer 0 entries of the tuple
- * @param {Array} buffer the current token buffe - should be null if called for the first time
  * @returns the resolved tuple
  */
-function _parseTupleFromTree(tree, separateBuffer = true, buffer = null) {
+function _parseTupleFromTree(tree, tokenBuffer, linker) {
     // If in tuple depth is zero, the buffer should be split into the individual arguments
     // All deeper layers should not be separated but saved as a token list
     separateBuffer = separateBuffer && (buffer == null);
@@ -239,7 +262,7 @@ function _parseTupleFromTree(tree, separateBuffer = true, buffer = null) {
         }
     }
     mData.push(mCurElement);
-    return mData;
+    return new Tuple(mdata);
 }
 
 exports.buildBracketTree = buildBracketTree;
