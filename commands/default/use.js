@@ -17,7 +17,7 @@ module.exports = function(env) {
          * @param {ParserContext} ctx the parser context
          * @param {ParameterList} params a list of optional parameters
          */
-        parseJtexUse(buffer, ctx, params) {
+        parseJtexUse(buffer, ctx, params, args) {
             if (!ctx.parser.tokenizer.nextIgnoreWhitespacesAndComments())
                 throw new ParserError("Expected a package-name after command.").init(ctx.parser.tokenizer.current);
             

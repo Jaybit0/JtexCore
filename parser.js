@@ -100,6 +100,7 @@ class Parser {
     parseMain(buffer) {
         if (!this.tokenizer.nextIgnoreWhitespacesAndComments())
             return;
+        var defaultContext = new ParserContext(this);
         do {
             if (this.tokenizer.current.id == Tokens.DOUBLE_DASH) {
                 var res = this.tokenizer.resolveTokenBuffer(1);
@@ -107,7 +108,7 @@ class Parser {
                 buffer.appendMany(lb);
                 var bufferActive = this.tokenizer.isTokenBufferActive();
                 this.tokenizer.activateTokenBuffer(false);
-                this.parseJtexCommand(buffer);
+                this.parseJtexCommand(buffer, defaultContext);
                 this.tokenizer.activateTokenBuffer(bufferActive);
             }
         } while (this.tokenizer.nextIgnoreWhitespacesAndComments())
@@ -129,17 +130,31 @@ class Parser {
             for (var cmd of this.commandDict[this.tokenizer.current.id]) {
                 if (!cmd.checker(this.tokenizer.current))
                     continue;
-                ctx.push(cmd.name);
-                var cmdParams = new ParameterList(pUtils.parseOptionalParameters(buffer, ctx, true));
+                ctx.ctx.push(cmd.name);
+                var args = {
+                    commandToken: this.tokenizer.current
+                };
+
+                var cmdParams = new ParameterList(pUtils.parseOptionalParameters(buffer, ctx));
+                
                 if (ctx.ctx.length == 1) {
-                    cmd.handler(buffer, ctx, cmdParams);
+                    cmd.handler(buffer, ctx, cmdParams, args);
                 } else {
                     var mBuffer = new LineBuffer();
-                    cmd.handler(mBuffer, ctx, cmdParams);
+                    this.tokenizer.virtualize();
+
+                    cmd.handler(mBuffer, ctx, cmdParams, args);
+
                     var tokens = pUtils.tokenizeSubstring(mBuffer.toString(), this.tokenizer.current);
+
+                    // TODO: Check if this does not break anything
+                    // This is necessary as the command handler might queue tokens
+                    // If e.g. optional parameters are parsed, the tokenizer will queue the following token
+                    // This will mess up the token order 
                     this.tokenizer.queueTokens(tokens);
+                    this.tokenizer.unvirtualize();
                 }
-                ctx.pop();
+                ctx.ctx.pop();
                 return true;
             }
         }
@@ -191,6 +206,15 @@ class ParserContext {
      */
     pop() {
         return this.ctx.pop();
+    }
+
+    /**
+     * Counts all occurrences of a specific context
+     * @param {function(string): boolean} ctx 
+     * @returns {int} the number of occurences
+     */
+    countContextOccurrences(filter) {
+        return this.ctx.filter(filter).length;
     }
 }
 

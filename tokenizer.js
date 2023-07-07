@@ -11,6 +11,7 @@ class Tokenizer {
     this.tokenBuffer = [];
     this.tokenBufferActive = false;
     this.tokenQueue = [];
+    this.storedTokenQueues = [];
     this.wasLineBreak = false;
   }
 
@@ -35,9 +36,9 @@ class Tokenizer {
    * @returns {boolean} whether the next token is not EOF
    */
   next() {
-    if (this.tokenQueue.length != 0) {
+    if (this.isElementOnTokenQueue()) {
       const last = this.current;
-      this.current = this.tokenQueue.shift();
+      this.current = this.shiftFromTokenQueue();
 
       if (last.line != this.current.line)  {
         this.wasLineBreak = true;
@@ -49,6 +50,7 @@ class Tokenizer {
 
       if (this.tokenBufferActive && this.current.id != Tokens.EOF)
         this.tokenBuffer.push(this.current);
+
       return this.current.id != Tokens.EOF;
     }
     const last = this.current;
@@ -63,6 +65,7 @@ class Tokenizer {
 
     if (this.tokenBufferActive && this.current.id != Tokens.EOF)
       this.tokenBuffer.push(this.current);
+
     return this.current.id != Tokens.EOF;
   }
 
@@ -94,13 +97,25 @@ class Tokenizer {
 
   /**
    *
-   * @returns whether the next Token is a Whitespace, Comment or Block_Comment
+   * @returns whether the current Token is a Whitespace, Comment or Block_Comment
    */
   currentTokenWhitespaceOrComment() {
     return (
       this.current.id == Tokens.WHITESPACE ||
       this.current.id == Tokens.COMMENT ||
       this.current.id == Tokens.BLOCK_COMMENT
+    );
+  }
+
+  /**
+   *
+   * @returns whether the given Token is a Whitespace, Comment or Block_Comment
+   */
+  isTokenWhitespaceOrComment(token) {
+    return (
+      token.id == Tokens.WHITESPACE ||
+      token.id == Tokens.COMMENT ||
+      token.id == Tokens.BLOCK_COMMENT
     );
   }
 
@@ -125,6 +140,51 @@ class Tokenizer {
    */
   pushToTokenBuffer(token) {
     this.tokenBuffer.push(token);
+  }
+
+  /**
+   * 
+   * @returns whether there are any tokens left in the token queue
+   */
+  isElementOnTokenQueue() {
+    if (this.tokenQueue.length != 0)
+      return true;
+    for (var subQueue of this.storedTokenQueues) {
+      if (subQueue.length != 0)
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Shifts the first token from the token queue.
+   */
+  shiftFromTokenQueue() {
+    if (this.tokenQueue.length != 0)
+      return this.tokenQueue.shift();
+    for (var subQueue of this.storedTokenQueues) {
+      if (subQueue.length != 0)
+        return subQueue.shift();
+    }
+    throw new Error("No token to shift from queue");
+  }
+
+  /**
+   * Virtualizes the tokenizer. This should be done before parsing a sub-command.
+   */
+  virtualize() {
+    this.storedTokenQueues.push(this.tokenQueue);
+    this.tokenQueue = [];
+  }
+
+  /**
+   * Unvirtualizes the tokenizer. This should be done after parsing a sub-command.
+   */
+  unvirtualize() {
+    if (this.storedTokenQueues.length == 0) 
+      throw new Error("No virtualization to unvirtualize")
+
+    this.tokenQueue.push(...this.storedTokenQueues.pop());
   }
 }
 
@@ -191,6 +251,14 @@ class Token {
     this.len = data.length;
     this.data = data;
     return this;
+  }
+
+  /**
+   * 
+   * @returns the number of linebreaks in the token data
+   */
+  countLinebreaks() {
+    return (this.data.match(/\n/g) || []).length;
   }
 
   /**
