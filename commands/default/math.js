@@ -151,7 +151,7 @@ module.exports = function(env) {
                         createMatrixFromData = false;
                         if (storedMatrix == null)
                             throw new ParserError("Cannot fill any parameters. No matrix has been initialized.").init(param.param);
-                        if (param.args.length != 1 || param.args.get(0).tokenize().length == 0)
+                        if (param.args.length() != 1 || param.args.get(0).tokenize().length == 0)
                             throw new ParserError("Expected one parameter for fill. Given: 0").init(param.param);
                         // TODO: Handle nested expressions -> Maybe stringify the whole parameter and parse it again
                         storedMatrix.fill(param.args.get(0).tokenize());
