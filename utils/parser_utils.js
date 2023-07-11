@@ -228,6 +228,22 @@ function stringify(tokens) {
     return str;
 }
 
+/**
+ * 
+ * @param {*} fromIndex 
+ * @param {*} tokenCollection 
+ * @returns {int} the index of the next non-whitespace token
+ */
+function skipWhitespacesInTokenCollection(fromIndex, tokenCollection) {
+    const data = tokenCollection.data;
+    var i = fromIndex;
+
+    while (i < data.length && data[i] instanceof Token && Tokenizer.isTokenWhitespaceOrComment(data[i]))
+        i++;
+
+    return i;
+}
+
 exports.buildBracketTree = buildBracketTree;
 exports.parseMathTree = parseMathTree;
 exports.tokenizeSubstring = tokenizeSubstring;
@@ -235,3 +251,4 @@ exports.parseOptionalParameters = parseOptionalParameters;
 exports.parseOptionalParameter = parseOptionalParameter;
 exports.parseTuple = parseTuple;
 exports.stringify = stringify;
+exports.skipWhitespacesInTokenCollection = skipWhitespacesInTokenCollection;
