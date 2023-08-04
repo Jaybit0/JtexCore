@@ -397,7 +397,11 @@ module.exports = function(env) {
                     this.handleSetPosition(ctx, param, storedMatrix);
                     break;
                 case "row":
-                    this.handleSetRow(ctx, param, storedMatrix);
+                    this.handleSetRowOrCol(ctx, param, storedMatrix, "row");
+                    break;
+                case "col":
+                case "column":
+                    this.handleSetRowOrCol(ctx, param, storedMatrix, "col");
                     break;
                 default:
                     throw new ParserError("Could not resolve set command hint: " + mdata).init(annotation);
@@ -423,7 +427,7 @@ module.exports = function(env) {
             storedMatrix.set(x, y, data);
         }
 
-        handleSetRow(ctx, param, storedMatrix) {
+        handleSetRowOrCol(ctx, param, storedMatrix, mode) {
             if (param.args.length() < 2)
                 throw new ParserError("Could not set matrix row at index. Expected 2 parameters, given: " + param.args.length()).init(param.param);
 
@@ -441,7 +445,10 @@ module.exports = function(env) {
             var tpl = row.get(startIndex)
             this.parseVectorTuple(tpl);
 
-            storedMatrix.setRow(y, tpl);
+            if (mode == "row")
+                storedMatrix.setRow(y, tpl);
+            else if (mode == "col")
+                storedMatrix.setCol(y, tpl);
         }
 
         /**
@@ -575,7 +582,23 @@ module.exports = function(env) {
                 if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
                     this.data[y][i] = vector.getAnnotated(i)[1];
             }
-            //this.data[y] = vector.data;
+        }
+
+        /**
+         * 
+         * @param {int} x the col index
+         * @param {Tuple} vector the vector
+         */
+        setCol(x, vector) {
+            if (x < 0 || x >= this.sizeX)
+                throw new ParserError("Invalid x coordinate! Expected 0 <= x < " + this.sizeX + ", given: x=" + x);
+            if (vector.length() != this.sizeY)
+                throw new ParserError("Invalid vector size! Expected " + this.sizeY + " entries, given: " + vector.length());
+            
+            for (var i = 0; i < this.sizeY; i++) {
+                if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
+                    this.data[i][x] = vector.getAnnotated(i)[1];
+            }
         }
 
         /**
