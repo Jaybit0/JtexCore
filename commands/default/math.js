@@ -429,6 +429,7 @@ module.exports = function(env) {
 
             var y = this.#readNumericParameter(ctx, param.args.getAnnotated(0)[1].tokenize());
             var row = param.args.get(1);
+            
             var startIndex = pUtils.skipWhitespacesInTokenCollection(0, row);
             
             if (startIndex >= row.length())
@@ -437,7 +438,41 @@ module.exports = function(env) {
             if (!(row.get(startIndex) instanceof Tuple))
                 throw new ParserError("Cound not set matrix row at index. Expected tuple, given: " + row.get(startIndex).constructor.name).init(row.get(startIndex));
 
-            storedMatrix.setRow(y, row.get(startIndex));
+            var tpl = row.get(startIndex)
+            this.parseVectorTuple(tpl);
+
+            storedMatrix.setRow(y, tpl);
+        }
+
+        /**
+         * Parses a vector tuple by adding metadata to meta entries that represent
+         * certain actions
+         * @param {Tuple} vec the vector tuple to parse
+         */
+        parseVectorTuple(vec) {
+            for (var i = 0; i < vec.length(); i++) {
+                const [annotation, entry] = vec.getAnnotated(i);
+
+                if (annotation != null && annotation.data == "esc")
+                    continue;
+
+                if (this.checkForEmpty(entry))
+                    entry.getMeta()["m.vec.skip"] = true;
+            }
+        }
+
+        /**
+         * Checks if the given token collection is empty or only contains whitespaces
+         * @param {TokenCollection} col 
+         * @returns {boolean} if the token collection is empty
+         */
+        checkForEmpty(col) {
+            for (var i = 0; i < col.length(); i++) {
+                if (col.get(i) instanceof Token && Tokenizer.isTokenWhitespaceOrComment(col.get(i)))
+                    continue;
+                return false;
+            }
+            return true;
         }
     }
 
@@ -535,19 +570,24 @@ module.exports = function(env) {
                 throw new ParserError("Invalid y coordinate! Expected 0 <= y < " + this.sizeY + ", given: y=" + y);
             if (vector.length() != this.sizeX)
                 throw new ParserError("Invalid vector size! Expected " + this.sizeX + " entries, given: " + vector.length());
-            this.data[y] = vector.data;
+            
+            for (var i = 0; i < this.sizeX; i++) {
+                if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
+                    this.data[y][i] = vector.getAnnotated(i)[1];
+            }
+            //this.data[y] = vector.data;
         }
 
         /**
          * Fills all empty entries with the token specified.
          * Currently only works with empty matrices
-         * @param {Token} fillToken 
+         * @param {Array} fill 
          */
-        fill(fillToken) {
+        fill(fill) {
             for (var row of this.data) {
                 for (var i = 0; i < row.length; i++) {
-                    if (row[i].length == 0)
-                        row[i] = new TokenCollection([fillToken]);
+                    if (row[i].data.length == 0)
+                        row[i] = new TokenCollection(fill);
                 }
             }
         }

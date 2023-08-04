@@ -20,6 +20,45 @@ class Structure {
         return this.metastructure;
     }
 
+    getMeta() {
+        if (typeof this.metadata === "undefined")
+            this.metadata = {};
+        return this.metadata;
+    }
+
+    /**
+     * 
+     * @param {string} property 
+     * @param {object} defaultValue
+     */
+    getProperty(property, defaultValue = null) {
+        if (typeof this.metadata == "undefined")
+            return defaultValue;
+        if (this.metadata[property] == undefined)
+            return defaultValue;
+        return this.metadata[property];
+    }
+
+    /**
+     * Sets or overwrites a property
+     * @param {string} property 
+     * @param {object} value 
+     */
+    setProperty(property, value) {
+        this.getMeta()[property] = value;
+    }
+
+    /**
+     * Removes a property from the metadata
+     * @param {string} property 
+     */
+    removeProperty(property) {
+        if (this.getProperty(property, undefined) == undefined)
+            return;
+
+        this.metadata.delete(property);
+    }
+
     toString() {
         return this.tokenize().map(token => token.toString()).reduce((x, y) => x + y);
     }
