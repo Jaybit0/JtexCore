@@ -7,9 +7,9 @@ class Structure {
      */
     constructor(metastructure=false) {
         this.metastructure = metastructure;
-        if (this.constructor == Structure) {
+
+        if (this.constructor == Structure)
             throw new ParserError("Abstract class cannot be instantiated.");
-        }
     }
 
     tokenize() {
@@ -34,8 +34,10 @@ class Structure {
     getProperty(property, defaultValue = null) {
         if (typeof this.metadata == "undefined")
             return defaultValue;
+
         if (this.metadata[property] == undefined)
             return defaultValue;
+        
         return this.metadata[property];
     }
 

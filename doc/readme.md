@@ -65,7 +65,7 @@ Note that `;` is used to indicate the end of the inline math mode. However, `;` 
 
 ### Block math mode
 
-The block math mode is indicated by `--m`, followed by curly brackets. The converter interprets the input and converts it to a an align* environment in LaTeX. The expression
+The block math mode is indicated by `--m` or `--math`, followed by curly brackets. The converter interprets the input and converts it to a an align* environment in LaTeX. The expression
 ```
 --m{
     x &= (3/2)^2\\
@@ -114,6 +114,41 @@ Jtex replaces many symbols automatically in math mode, to help with fulfilling t
 | `//`     | Integral    | `a//b`      | `\int_{a}^{b}`  |
 
 Notice, that you should use parentheses and not curly brackets like in normal LaTeX to use operators on a sequence of characters.
+
+## Matrix
+
+You can easily create matrices using matrix command `--mat` or `--matrix` in [math mode](#math-mode).
+
+### Explicit matrix definition
+
+The simplest way to define a matrix is using an explicit definition according to the example below.
+
+```
+--m{
+    --mat{
+        1, 2, 3
+        4, 5, 6
+        7, 8, 9
+    }
+}
+```
+
+Matrix entries are separated by commas, while rows are distinguished by line breaks or semicolons.
+
+### Storing and recalling a matrix
+
+You are able to store and recall matrices at later times. Keep in mind that recalling a matrix is only possible if it has been defined in the code above.
+
+```
+--m{
+    --mat.store(my_matrix){
+        1, 2, 3
+        4, 5, 6
+        7, 8, 9
+    }
+}
+```
+
 ## Comments
 
 Comments in a single line can be used identical to normal LaTeX with the character `%`. 

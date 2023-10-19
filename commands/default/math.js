@@ -66,6 +66,7 @@ module.exports = function(env) {
             var dataTree = pUtils.buildBracketTree(buffer, ctx, checker, true, allowedBrackets);
 
             var mathComponents = [[]];
+
             for (var token of dataTree.data) {
                 if (token.id == Tokens.SEMICOLON)
                     mathComponents.push([]);
@@ -85,8 +86,10 @@ module.exports = function(env) {
             }
             var mode = params.getParam("mode");
             var mmode = "align*";
+
             if (mode != null)
                 mmode = pUtils.stringify(mode.args.get(0).tokenize());
+
             buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
         }
     }
@@ -98,6 +101,13 @@ module.exports = function(env) {
             this.init(this.parseMatrix);
         }
 
+        /**
+         * Parses a matrix
+         * @param {LineBuffer} buffer a line buffer 
+         * @param {ParserContext} ctx the parser context
+         * @param {ParameterList} params a list of optional parameters
+         * @param {*} args 
+         */
         parseMatrix(buffer, ctx, params, args) {
             if (ctx.countContextOccurrences(mctx => mctx === "default.math.inline" || mctx === "default.math.block") == 0)
                 throw new ParserError("Cannot use matrix command outside a math environment.").init(args.commandToken);
@@ -140,10 +150,12 @@ module.exports = function(env) {
 
                     case "fill":
                         createMatrixFromData = false;
+
                         if (storedMatrix == null)
                             throw new ParserError("Cannot fill any parameters. No matrix has been initialized.").init(param.param);
                         if (param.args.length() != 1 || param.args.get(0).tokenize().length == 0)
                             throw new ParserError("Expected one parameter for fill. Given: 0").init(param.param);
+
                         // TODO: Handle nested expressions -> Maybe stringify the whole parameter and parse it again
                         storedMatrix.fill(param.args.get(0).tokenize());
                         break;
@@ -170,6 +182,7 @@ module.exports = function(env) {
                         throw new ParserError("Unknown matrix parameter: " + param.param.data).init(param.param);
                 }
             }
+
             if (createMatrixFromData)
                 storedMatrix = this.createMatrixFromData(buffer, ctx);
 
@@ -364,7 +377,7 @@ module.exports = function(env) {
             for (var token of arg) {
                 if (!(token instanceof Token))
                     throw new ParserError("Expected a variable name. Cannot handle nested expressions here").init(token);
-                if (ctx.parser.tokenizer.isTokenWhitespaceOrComment(token))
+                if (Tokenizer.isTokenWhitespaceOrComment(token))
                     continue;
                 if (varname != null)
                     throw new ParserError("Expected a variable name. Given another token after the variable name has been initialized: " + token.data).init(token);
@@ -410,17 +423,14 @@ module.exports = function(env) {
                 default:
                     throw new ParserError("Could not resolve set command hint: " + mdata).init(annotation);
             }
-
-            /*try {
-                var x = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
-                var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
-                var data = param.args.get(2).tokenize();
-                storedMatrix.set(x, y, data);
-            } catch (e) {
-                throw new ParserError("Could not parse matrix set-coordinates: " + e.message).init(param.args.get(0).tokenize());
-            }*/
         }
 
+        /**
+         * 
+         * @param {ParserContext} ctx 
+         * @param {*} param 
+         * @param {StoredMatrix} storedMatrix 
+         */
         handleSetPosition(ctx, param, storedMatrix) {
             if (param.args.length() < 3)
                 throw new ParserError("Could not set matrix entry at position. Expected 3 parameters, given: " + param.args.length()).init(param.param);
@@ -431,6 +441,13 @@ module.exports = function(env) {
             storedMatrix.set(x, y, data);
         }
 
+        /**
+         * 
+         * @param {ParserContext} ctx 
+         * @param {*} param 
+         * @param {StoredMatrix} storedMatrix 
+         * @param {string} mode 
+         */
         handleSetRowOrCol(ctx, param, storedMatrix, mode) {
             if (param.args.length() < 2)
                 throw new ParserError("Could not set matrix row at index. Expected 2 parameters, given: " + param.args.length()).init(param.param);
@@ -531,13 +548,9 @@ module.exports = function(env) {
 
             for (var row of this.data) {
                 var parsedRow = [];
-                for (var element of row) {
-                    /*var flattened = this.#unwrapAndFlattenTree(element);
-                    if (flattened.length == 1)
-                        flattened[0].unwrap();
-                    parsedRow.push(flattened.join(""));*/
+                for (var element of row)
                     parsedRow.push(element.tokenize().join(""));
-                }
+
                 parsedComponents.push(parsedRow.join("&"));
             }
 
