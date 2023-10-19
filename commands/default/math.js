@@ -130,7 +130,7 @@ module.exports = function(env) {
 
                     case "recall":
                         createMatrixFromData = false;
-                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(0).tokenize())];
+                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(0).tokenize())].clone();
                         break;
 
                     case "empty":
@@ -672,6 +672,14 @@ module.exports = function(env) {
                     this.data[y+i][x+j] = matrix.data[i][j];
                 }
             }
+        }
+
+        /**
+         * Clones this stored matrix
+         * @returns a cloned instance of this StoredMatrix
+         */
+        clone() {
+            return new StoredMatrix(this.data.map(arr => arr.slice()));
         }
 
         /**
