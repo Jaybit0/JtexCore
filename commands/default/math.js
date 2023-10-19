@@ -496,7 +496,7 @@ module.exports = function(env) {
             if (data.length == 0)
                 throw new ParserError("Cannot create an empty StoredMatrix!");
             
-            console.log(this.data);
+            this.data = data;
             const sizeY = this.data.length;
             const sizeX = this.data[0].length;
 
