@@ -532,6 +532,8 @@ module.exports = function(env) {
                     if (flattened.length == 1)
                         flattened[0].unwrap();
                     parsedRow.push(flattened.join(""));*/
+                    console.log(element);
+                    console.log(typeof(element));
                     parsedRow.push(element.tokenize().join(""));
                 }
                 parsedComponents.push(parsedRow.join("&"));
