@@ -267,6 +267,7 @@ module.exports = function(env) {
 
             console.log(matrix);
             console.log(matrix[0]);
+            console.log(typeof(matrix[0]))
             for (var i = 0; i < matrix.length; i++)
                 for (var j = 0; j < matrix[i].length; i++)
                     matrix[i][j] = new TokenCollection(matrix[i][j]);
