@@ -146,12 +146,24 @@ You are able to store and recall matrices at later times. Keep in mind that reca
         4, 5, 6
         7, 8, 9
     }
-
     --mat.recall(my_matrix)
 }
 ```
 
-You also have the option to hide the matrix when storing it.
+If you recall a matrix, it is cloned. To overwrite the original matrix after modifying it, you need to call the function `store` again. Right now, `store` is a downstream function so it does not matter at what position you put it. This behaviour might be changed in future.
+
+When storing a matrix, you might not want to display it at that position. Thus, there is a possibility to hide the matrix.
+
+```
+--m{
+    --mat.store(my_matrix).hide(){
+        1, 2, 3
+        4, 5, 6
+        7, 8, 9
+    }
+    --mat.recall(my_matrix)
+}
+```
 
 ## Comments
 
