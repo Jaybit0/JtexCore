@@ -373,25 +373,52 @@ module.exports = function(env) {
          * @returns 
          */
         #readVarnameParameter(ctx, arg) {
-            var varname = null;
-            for (var token of arg) {
+            var varname = [];
+            var i = 0;
+            var varnameFinished = false;
+
+            while (i < arg.length) {
+                var token = arg[i];
+                i++;
                 if (!(token instanceof Token))
                     throw new ParserError("Expected a variable name. Cannot handle nested expressions here").init(token);
                 if (Tokenizer.isTokenWhitespaceOrComment(token))
                     continue;
-                if (varname != null)
-                    throw new ParserError("Expected a variable name. Given another token after the variable name has been initialized: " + token.data).init(token);
 
                 if (token.id != Tokens.VARNAME)
                     throw new ParserError("Expected a variable name as matrix dimension. Given: " + token.data).init(token);
 
-                varname = token.data;
+                varname.push(token);
+                break;
             }
 
-            if (varname == null)
+            while (i < arg.length) {
+                var token = arg[i];
+                i++;
+
+                if (Tokenizer.isTokenWhitespaceOrComment(token)) {
+                    varnameFinished = true;
+                    continue;
+                }
+                
+                if (varnameFinished)
+                    throw new ParserError("Expected a variable name. Given another token after the variable name has been initialized: " + token.data).init(token);
+
+                switch (token.id) {
+                    case Tokens.VARNAME:
+                    case Tokens.NUMBER:
+                    case Tokens.UNDERSCORE:
+                        varname.push(token);
+                        break;
+                    default:
+                        throw new ParserError("Invalid token for a variable name: " + token.data).init(token);
+                }
+            }
+
+            if (varname.length == 0)
                 throw new ParserError("Expected a variable name. Given empty parameter.").init(param.args.get(0).tokenize());
 
-            return varname;
+            return new TokenCollection(varname).toString();
         }
 
         /**

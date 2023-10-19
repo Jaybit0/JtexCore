@@ -146,8 +146,12 @@ You are able to store and recall matrices at later times. Keep in mind that reca
         4, 5, 6
         7, 8, 9
     }
+
+    --mat.recall(my_matrix)
 }
 ```
+
+You also have the option to hide the matrix when storing it.
 
 ## Comments
 
