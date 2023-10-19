@@ -265,6 +265,10 @@ module.exports = function(env) {
             for (var i = emptyRows.length-1; i >= 0; i--)
                 matrix.splice(emptyRows[i], 1);
 
+            for (var i = 0; i < matrix.length; i++)
+                for (var j = 0; j < matrix[i].length; i++)
+                    matrix[i][j] = new TokenCollection(matrix[i][j]);
+
             return new StoredMatrix(matrix);
         }
 
@@ -532,8 +536,6 @@ module.exports = function(env) {
                     if (flattened.length == 1)
                         flattened[0].unwrap();
                     parsedRow.push(flattened.join(""));*/
-                    console.log(element);
-                    console.log(typeof(element));
                     parsedRow.push(element.tokenize().join(""));
                 }
                 parsedComponents.push(parsedRow.join("&"));
