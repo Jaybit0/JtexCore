@@ -546,12 +546,12 @@ module.exports = function(env) {
                 throw new ParserError("Cannot create an empty StoredMatrix!");
             
             this.data = data;
-            const sizeY = this.data.length;
-            const sizeX = this.data[0].length;
+            this.sizeY = this.data.length;
+            this.sizeX = this.data[0].length;
 
-            for (var i = 1; i < sizeY; i++)
-                if (this.data[i].length != sizeX)
-                    throw new ParserError("The size of the matrix is inconsistent. Expected " + sizeX + ", given: " + this.data[i].length).init(this.data[i].length > 0 ? this.data[i][this.data[i].length-1] : null);
+            for (var i = 1; i < this.sizeY; i++)
+                if (this.data[i].length != this.sizeX)
+                    throw new ParserError("The size of the matrix is inconsistent. Expected " + this.sizeX + ", given: " + this.data[i].length).init(this.data[i].length > 0 ? this.data[i][this.data[i].length-1] : null);
         }
 
         /**
