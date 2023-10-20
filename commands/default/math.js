@@ -600,10 +600,10 @@ module.exports = function(env) {
 
         // TODO: Init error with corresponding token (currently not possible)
         set(x, y, data) {
-            if (x <= 0 || x >= this.sizeX)
+            if (x < 0 || x >= this.sizeX)
                 throw new ParserError("Trying to set an invalid x-position of the StoredMatrix: " + x + " (must be 0 <= x < " + this.sizeX + ")");
 
-            if (y <= 0 || y >= this.sizeY)
+            if (y < 0 || y >= this.sizeY)
                 throw new ParserError("Trying to set an invalid y-position of the StoredMatrix: " + y + " (must be 0 <= y < " + this.sizeY + ")");
 
             this.data[y][x] = data;
