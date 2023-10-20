@@ -466,7 +466,6 @@ module.exports = function(env) {
             var x = this.#readNumericParameter(ctx, param.args.getAnnotated(0)[1].tokenize());
             var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
             var data = param.args.get(2);
-            console.log(data);
             storedMatrix.set(x, y, data);
         }
 

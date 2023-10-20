@@ -135,7 +135,7 @@ The simplest way to define a matrix is using an explicit definition according to
 
 Matrix entries are separated by commas, while rows are distinguished by line breaks or semicolons.
 
-### Storing and recalling a matrix
+### Storing, recalling and hiding a matrix
 
 You are able to store and recall matrices at later times. Keep in mind that recalling a matrix is only possible if it has been defined in the code above.
 
@@ -181,12 +181,37 @@ Sometimes you might want to initialize an empty matrix with fixed dimensions and
 | -------- | ----------- | ----------- |
 | `fill`      | Fills empty entries with the token specified    | `*.fill(0)`   |
 | `set`      | [Sets a part of a matrix](#manipulation-using-set)     | `*.set(row: 2, (1, 2, 3))`       |
+| `setblock`      | Sets a block of a matrix to a given stored matrix    | `*.setblock(3, 3, my_matrix)`   |
 
 ### Manipulation using set
 
-The `set` manipulator is a general manipulation tool. You can either set single entries or entiere rows / columns. You can set a single entry 
+The `set` manipulator is a general manipulation tool. You can either set single entries or entiere rows / columns. You can set a single entry with `*.set(<x>, <y>, <entry>)`.
+
+```
+--m{
+    --mat.empty(5, 5).fill(0).set(2, 2, 5)
+    --mat.empty(5, 5).fill(0).set(entry: 2, 2, 5)
+}
+```
+
+As in line three of the above example, you can also use annotations before the first parameter two clarify the type of set operation. You can either use the keywords `entry`, `pos`, `position`, `loc`, or `location` to set a single entry.
+
+You can also set rows and columns in a matrix. Currently, it is only possible to set columns if the given vector size matches the matrix size. For that, you can use the annotation keywords `col`, `column` or `row`.
+
+```
+--m{
+    --mat.empty(5, 5).fill(0).set(row: 2, (1, 2, 3, 4, 5))
+    --mat.empty(5, 5).fill(0).set(col: 2, (1, 2, 3, 4, 5))
+}
+```
 
 ### Other matrix functions
+
+| Manipulator | Description | Example     |
+| -------- | ----------- | ----------- |
+| `store`      | [Stores a matrix](#storing-recalling-and-hiding-a-matrix)    | `*.store(my_matrix)`   |
+| `recall`      | [Recalls a matrix](#storing-recalling-and-hiding-a-matrix)     | `*.recall(my_matrix)`       |
+| `hide`      | [Hides a matrix](#storing-recalling-and-hiding-a-matrix)    | `*.setblock(3, 3, my_matrix)`   |
 
 ## Comments
 
