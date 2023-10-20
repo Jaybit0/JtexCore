@@ -465,7 +465,8 @@ module.exports = function(env) {
 
             var x = this.#readNumericParameter(ctx, param.args.getAnnotated(0)[1].tokenize());
             var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
-            var data = param.args.get(2).tokenize();
+            var data = param.args.get(2);
+            console.log(data);
             storedMatrix.set(x, y, data);
         }
 
@@ -599,6 +600,12 @@ module.exports = function(env) {
         }
 
         // TODO: Init error with corresponding token (currently not possible)
+        /**
+         * 
+         * @param {Number} x 
+         * @param {Number} y 
+         * @param {Structure} data 
+         */
         set(x, y, data) {
             if (x < 0 || x >= this.sizeX)
                 throw new ParserError("Trying to set an invalid x-position of the StoredMatrix: " + x + " (must be 0 <= x < " + this.sizeX + ")");
