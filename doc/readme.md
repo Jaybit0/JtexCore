@@ -152,7 +152,7 @@ You are able to store and recall matrices at later times. Keep in mind that reca
 
 If you recall a matrix, it is cloned. To overwrite the original matrix after modifying it, you need to call the function `store` again. Right now, `store` is a downstream function so it does not matter at what position you put it. This behaviour might be changed in future.
 
-When storing a matrix, you might not want to display it at that position. Thus, there is a possibility to hide the matrix.
+When storing a matrix, you might not want to display it at that position. Thus, there is a possibility to hide the matrix. You are then able to recall the matrix at a later point.
 
 ```
 --m{
@@ -164,6 +164,29 @@ When storing a matrix, you might not want to display it at that position. Thus, 
     --mat.recall(my_matrix)
 }
 ```
+
+### Implicit matrix initialization
+
+Sometimes you might want to initialize an empty matrix with fixed dimensions and fill them programmatically. You can do that with using the initializer `empty(<x>, <y>)`, where `<x>` is the width and `<y>` is the height of the matrix.
+
+```
+--m{
+    --mat.empty(5, 5)
+}
+```
+
+### Matrix manipulation
+
+| Manipulator | Description | Example     |
+| -------- | ----------- | ----------- |
+| `fill`      | Fills empty entries with the token specified    | `*.fill(0)`   |
+| `set`      | [Sets a part of a matrix](#manipulation-using-set)     | `*.set(row: 2, (1, 2, 3))`       |
+
+### Manipulation using set
+
+The `set` manipulator is a general manipulation tool. You can either set single entries or entiere rows / columns. You can set a single entry 
+
+### Other matrix functions
 
 ## Comments
 

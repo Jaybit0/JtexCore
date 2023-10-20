@@ -431,9 +431,10 @@ module.exports = function(env) {
             // Check for annotation
             const [annotation, firstArg] = param.args.getAnnotated(0);
 
-            var mdata = annotation == null ? "pos" : annotation.data;
+            var mdata = annotation == null ? "entry" : annotation.data;
 
             switch (mdata) {
+                case "entry":
                 case "pos":
                 case "position":
                 case "loc":
@@ -551,10 +552,6 @@ module.exports = function(env) {
             for (var i = 1; i < sizeY; i++)
                 if (this.data[i].length != sizeX)
                     throw new ParserError("The size of the matrix is inconsistent. Expected " + sizeX + ", given: " + this.data[i].length).init(this.data[i].length > 0 ? this.data[i][this.data[i].length-1] : null);
-
-            this.data = data;
-            this.sizeX = this.data.length[0];
-            this.sizeY = this.data.length;
         }
 
         /**
