@@ -509,6 +509,7 @@ module.exports = function(env) {
             for (var i = 0; i < vec.length(); i++) {
                 const [annotation, entry] = vec.getAnnotated(i);
 
+                // TODO: This check never holds as there is no annotation parsed if empty after
                 if (annotation != null && annotation.data == "esc")
                     continue;
 

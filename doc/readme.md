@@ -167,7 +167,7 @@ When storing a matrix, you might not want to display it at that position. Thus, 
 
 ### Implicit matrix initialization
 
-Sometimes you might want to initialize an empty matrix with fixed dimensions and fill them programmatically. You can do that with using the initializer `empty(<x>, <y>)`, where `<x>` is the width and `<y>` is the height of the matrix.
+Sometimes, you might want to initialize an empty matrix with fixed dimensions and fill them programmatically. You can do so using the initializer `empty(<x>, <y>)`, where `<x>` is the width and `<y>` is the height of the matrix.
 
 ```
 --m{
@@ -194,7 +194,7 @@ The `set` manipulator is a general manipulation tool. You can either set single 
 }
 ```
 
-As in line three of the above example, you can also use annotations before the first parameter two clarify the type of set operation. You can either use the keywords `entry`, `pos`, `position`, `loc`, or `location` to set a single entry.
+As in line three of the above example, you can also use annotations before the first parameter to clarify the type of `set` operation. You can either use the keyword `entry`, `pos`, `position`, `loc`, or `location` to set a single entry.
 
 You can also set rows and columns in a matrix. Currently, it is only possible to set columns if the given vector size matches the matrix size. For that, you can use the annotation keywords `col`, `column` or `row`.
 
@@ -202,6 +202,14 @@ You can also set rows and columns in a matrix. Currently, it is only possible to
 --m{
     --mat.empty(5, 5).fill(0).set(row: 2, (1, 2, 3, 4, 5))
     --mat.empty(5, 5).fill(0).set(col: 2, (1, 2, 3, 4, 5))
+}
+```
+
+When setting a row or column, you can also leave entries empty. This results in that entry not being overwritten by the set function.
+
+```
+--m{
+    --mat.empty(5, 5).fill(0).set(row: 2, (1, 2, , 4, 5))
 }
 ```
 
