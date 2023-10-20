@@ -137,7 +137,7 @@ Matrix entries are separated by commas, while rows are distinguished by line bre
 
 ### Storing, recalling and hiding a matrix
 
-You are able to store and recall matrices at later times. Keep in mind that recalling a matrix is only possible if it has been defined in the code above.
+You are able to store and recall matrices at later times. Keep in mind that recalling a matrix is only possible if it has been defined in the code above (not below). Stored matrices can also be used across different math blocks.
 
 ```
 --m{
