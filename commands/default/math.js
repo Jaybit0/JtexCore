@@ -631,7 +631,7 @@ module.exports = function(env) {
             
             for (var i = 0; i < this.sizeX; i++) {
                 if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
-                    this.data[row][i] = vector.getAnnotated(i)[1];
+                    this.data[row-1][i] = vector.getAnnotated(i)[1];
             }
         }
 
@@ -648,7 +648,7 @@ module.exports = function(env) {
             
             for (var i = 0; i < this.sizeY; i++) {
                 if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
-                    this.data[i][col] = vector.getAnnotated(i)[1];
+                    this.data[i][col-1] = vector.getAnnotated(i)[1];
             }
         }
 
@@ -675,7 +675,7 @@ module.exports = function(env) {
         setblock(row, col, matrix) {
             for (var i = 0; i < matrix.data.length; i++) {
                 for (var j = 0; j < matrix.data[i].length; j++) {
-                    this.data[row+i][col+j] = matrix.data[i][j];
+                    this.data[row-1+i][col-1+j] = matrix.data[i][j];
                 }
             }
         }
