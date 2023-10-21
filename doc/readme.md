@@ -167,7 +167,7 @@ When storing a matrix, you might not want to display it at that position. Thus, 
 
 ### Implicit matrix initialization
 
-Sometimes, you might want to initialize an empty matrix with fixed dimensions and fill them programmatically. You can do so using the initializer `empty(<x>, <y>)`, where `<x>` is the width and `<y>` is the height of the matrix.
+Sometimes, you might want to initialize an empty matrix with fixed dimensions and fill them programmatically. You can do so using the initializer `empty(<nrows>, <ncols>)`.
 
 ```
 --m{
@@ -185,7 +185,7 @@ Sometimes, you might want to initialize an empty matrix with fixed dimensions an
 
 ### Manipulation using set
 
-The `set` manipulator is a general manipulation tool. You can either set single entries or entiere rows / columns. You can set a single entry with `*.set(<x>, <y>, <entry>)`.
+The `set` manipulator is a general manipulation tool. You can either set single entries or entiere rows / columns. You can set a single entry with `*.set(<row>, <col>, <entry>)`.
 
 ```
 --m{
@@ -215,11 +215,11 @@ When setting a row or column, you can also leave entries empty. This results in 
 
 ### Other matrix functions
 
-| Manipulator | Description | Example     |
+| Function | Description | Example     |
 | -------- | ----------- | ----------- |
 | `store`      | [Stores a matrix](#storing-recalling-and-hiding-a-matrix)    | `*.store(my_matrix)`   |
 | `recall`      | [Recalls a matrix](#storing-recalling-and-hiding-a-matrix)     | `*.recall(my_matrix)`       |
-| `hide`      | [Hides a matrix](#storing-recalling-and-hiding-a-matrix)    | `*.setblock(3, 3, my_matrix)`   |
+| `hide`      | [Hides a matrix](#storing-recalling-and-hiding-a-matrix)    | `*.hide()`   |
 
 ## Comments
 
