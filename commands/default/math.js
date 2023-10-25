@@ -4,8 +4,10 @@ module.exports = function(env) {
     const {ParserError} = require(path.join(env.base, "errors", "parser_error.js"));
     const {JtexCommand} = require(path.join(env.base, "commands", "command.js"));
     const pUtils = require(path.join(env.base, "utils", "parser_utils.js"));
-    const {Token} = require(path.join(env.base, "tokenizer.js"));
+    const {Token, Tokenizer} = require(path.join(env.base, "tokenizer.js"));
     const {ParserTokens, ParserToken} = require(path.join(env.base, "parser_token.js"))
+    const {Tuple} = require(path.join(env.base, "datastructures/Tuple.js"));
+    const {TokenCollection} = require(path.join(env.base, "datastructures/TokenCollection.js"));
 
     class JtexCommandMathInline extends JtexCommand {
         constructor() {
@@ -64,6 +66,7 @@ module.exports = function(env) {
             var dataTree = pUtils.buildBracketTree(buffer, ctx, checker, true, allowedBrackets);
 
             var mathComponents = [[]];
+
             for (var token of dataTree.data) {
                 if (token.id == Tokens.SEMICOLON)
                     mathComponents.push([]);
@@ -83,8 +86,10 @@ module.exports = function(env) {
             }
             var mode = params.getParam("mode");
             var mmode = "align*";
+
             if (mode != null)
                 mmode = pUtils.stringify(mode.args.get(0).tokenize());
+
             buffer.append("\\begin{" + mmode + "}" + parsedComponents.map(cmp => cmp.unwrap()).join("\\\\") + "\\end{" + mmode +"}");
         }
     }
@@ -96,6 +101,13 @@ module.exports = function(env) {
             this.init(this.parseMatrix);
         }
 
+        /**
+         * Parses a matrix
+         * @param {LineBuffer} buffer a line buffer 
+         * @param {ParserContext} ctx the parser context
+         * @param {ParameterList} params a list of optional parameters
+         * @param {*} args 
+         */
         parseMatrix(buffer, ctx, params, args) {
             if (ctx.countContextOccurrences(mctx => mctx === "default.math.inline" || mctx === "default.math.block") == 0)
                 throw new ParserError("Cannot use matrix command outside a math environment.").init(args.commandToken);
@@ -118,41 +130,32 @@ module.exports = function(env) {
 
                     case "recall":
                         createMatrixFromData = false;
-                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(0).tokenize())];
+                        storedMatrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(0).tokenize())].clone();
                         break;
 
                     case "empty":
                         createMatrixFromData = false;
-                        try {
-                            var dimX = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
-                            var dimY = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
-                            storedMatrix = new StoredMatrix();
-                            storedMatrix.empty(dimX, dimY);
-                        } catch (e) {
-                            throw new ParserError("Could not parse matrix dimensions: " + e.message).init(param.args.get(0).tokenize());
-                        }
+                        var dimRows = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
+                        var dimCols = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
+                        storedMatrix = new StoredMatrix();
+                        storedMatrix.empty(dimRows, dimCols);
                         break;
 
                     case "set":
                         createMatrixFromData = false;
                         if (storedMatrix == null)
                             throw new ParserError("Cannot set at matrix coordinates. No matrix has been initialized.").init(param.param);
-                        try {
-                            var x = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
-                            var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
-                            var data = param.args.get(2).tokenize();
-                            storedMatrix.set(x, y, data);
-                        } catch (e) {
-                            throw new ParserError("Could not parse matrix set-coordinates: " + e.message).init(param.args.get(0).tokenize());
-                        }
+                        this.handleSetCommand(ctx, param, storedMatrix);
                         break;
 
                     case "fill":
                         createMatrixFromData = false;
+
                         if (storedMatrix == null)
                             throw new ParserError("Cannot fill any parameters. No matrix has been initialized.").init(param.param);
                         if (param.args.length() != 1 || param.args.get(0).tokenize().length == 0)
                             throw new ParserError("Expected one parameter for fill. Given: 0").init(param.param);
+
                         // TODO: Handle nested expressions -> Maybe stringify the whole parameter and parse it again
                         storedMatrix.fill(param.args.get(0).tokenize());
                         break;
@@ -166,10 +169,10 @@ module.exports = function(env) {
                         if (storedMatrix == null)
                             throw new ParserError("Cannot set block. No matrix has been initialized.").init(param.param);
                         try {
-                            var x = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
-                            var y = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
+                            var row = this.#readNumericParameter(ctx, param.args.get(0).tokenize());
+                            var col = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
                             var matrix = ctx.vars["matrices"][this.#readVarnameParameter(ctx, param.args.get(2).tokenize())];
-                            storedMatrix.setblock(x, y, matrix);
+                            storedMatrix.setblock(row, col, matrix);
                         } catch (e) {
                             throw new ParserError("Could not parse matrix setblock-coordinates: " + e.message).init(param.args.get(0).tokenize());
                         }
@@ -179,6 +182,7 @@ module.exports = function(env) {
                         throw new ParserError("Unknown matrix parameter: " + param.param.data).init(param.param);
                 }
             }
+
             if (createMatrixFromData)
                 storedMatrix = this.createMatrixFromData(buffer, ctx);
 
@@ -191,7 +195,9 @@ module.exports = function(env) {
 
             var recalled = storedMatrix.recall(this.getMode(params, args));
 
-            if (!hide)
+            if (hide)
+                buffer.append("{}");
+            else
                 buffer.append(recalled);
         }
 
@@ -260,7 +266,7 @@ module.exports = function(env) {
                 else if (row.length == 1) {
                     empty = true;
                     for (var element of row[0]) {
-                        if (!(element instanceof Token) || !ctx.parser.tokenizer.isTokenWhitespaceOrComment(element)) {
+                        if (!(element instanceof Token) || !Tokenizer.isTokenWhitespaceOrComment(element)) {
                             empty = false;
                             break;
                         }
@@ -273,6 +279,10 @@ module.exports = function(env) {
             
             for (var i = emptyRows.length-1; i >= 0; i--)
                 matrix.splice(emptyRows[i], 1);
+
+            for (var i = 0; i < matrix.length; i++)
+                for (var j = 0; j < matrix[i].length; j++)
+                    matrix[i][j] = new TokenCollection(matrix[i][j]);
 
             return new StoredMatrix(matrix);
         }
@@ -341,7 +351,7 @@ module.exports = function(env) {
             for (var token of arg) {
                 if (!(token instanceof Token))
                     throw new ParserError("Expected a number. Cannot handle nested expressions here").init(token);
-                if (ctx.parser.tokenizer.isTokenWhitespaceOrComment(token))
+                if (Tokenizer.isTokenWhitespaceOrComment(token))
                     continue;
                 if (number != null)
                     throw new ParserError("Expected a number. Given another token after the number has been initialized: " + token.data).init(token);
@@ -365,25 +375,163 @@ module.exports = function(env) {
          * @returns 
          */
         #readVarnameParameter(ctx, arg) {
-            var varname = null;
-            for (var token of arg) {
+            var varname = [];
+            var i = 0;
+            var varnameFinished = false;
+
+            while (i < arg.length) {
+                var token = arg[i];
+                i++;
                 if (!(token instanceof Token))
                     throw new ParserError("Expected a variable name. Cannot handle nested expressions here").init(token);
-                if (ctx.parser.tokenizer.isTokenWhitespaceOrComment(token))
+                if (Tokenizer.isTokenWhitespaceOrComment(token))
                     continue;
-                if (varname != null)
-                    throw new ParserError("Expected a variable name. Given another token after the variable name has been initialized: " + token.data).init(token);
 
                 if (token.id != Tokens.VARNAME)
                     throw new ParserError("Expected a variable name as matrix dimension. Given: " + token.data).init(token);
 
-                varname = token.data;
+                varname.push(token);
+                break;
             }
 
-            if (varname == null)
+            while (i < arg.length) {
+                var token = arg[i];
+                i++;
+
+                if (Tokenizer.isTokenWhitespaceOrComment(token)) {
+                    varnameFinished = true;
+                    continue;
+                }
+                
+                if (varnameFinished)
+                    throw new ParserError("Expected a variable name. Given another token after the variable name has been initialized: " + token.data).init(token);
+
+                switch (token.id) {
+                    case Tokens.VARNAME:
+                    case Tokens.NUMBER:
+                    case Tokens.UNDERSCORE:
+                        varname.push(token);
+                        break;
+                    default:
+                        throw new ParserError("Invalid token for a variable name: " + token.data).init(token);
+                }
+            }
+
+            if (varname.length == 0)
                 throw new ParserError("Expected a variable name. Given empty parameter.").init(param.args.get(0).tokenize());
 
-            return varname;
+            return new TokenCollection(varname).toString();
+        }
+
+        /**
+         * Handles the set sub-command of the matrix
+         * @param {ParserContex} ctx 
+         * @param {*} param 
+         * @param {StoredMatrix} storedMatrix 
+         */
+        handleSetCommand(ctx, param, storedMatrix) {
+            // Check for annotation
+            const [annotation, firstArg] = param.args.getAnnotated(0);
+
+            var mdata = annotation == null ? "entry" : annotation.data;
+
+            switch (mdata) {
+                case "entry":
+                case "pos":
+                case "position":
+                case "loc":
+                case "location":
+                    this.handleSetPosition(ctx, param, storedMatrix);
+                    break;
+                case "row":
+                    this.handleSetRowOrCol(ctx, param, storedMatrix, "row");
+                    break;
+                case "col":
+                case "column":
+                    this.handleSetRowOrCol(ctx, param, storedMatrix, "col");
+                    break;
+                default:
+                    throw new ParserError("Could not resolve set command hint: " + mdata).init(annotation);
+            }
+        }
+
+        /**
+         * 
+         * @param {ParserContext} ctx 
+         * @param {*} param 
+         * @param {StoredMatrix} storedMatrix 
+         */
+        handleSetPosition(ctx, param, storedMatrix) {
+            if (param.args.length() < 3)
+                throw new ParserError("Could not set matrix entry at position. Expected 3 parameters, given: " + param.args.length()).init(param.param);
+
+            var row = this.#readNumericParameter(ctx, param.args.getAnnotated(0)[1].tokenize());
+            var col = this.#readNumericParameter(ctx, param.args.get(1).tokenize());
+            var data = param.args.get(2);
+            storedMatrix.set(row, col, data);
+        }
+
+        /**
+         * 
+         * @param {ParserContext} ctx 
+         * @param {*} param 
+         * @param {StoredMatrix} storedMatrix 
+         * @param {string} mode 
+         */
+        handleSetRowOrCol(ctx, param, storedMatrix, mode) {
+            if (param.args.length() < 2)
+                throw new ParserError("Could not set matrix row at index. Expected 2 parameters, given: " + param.args.length()).init(param.param);
+
+            var y = this.#readNumericParameter(ctx, param.args.getAnnotated(0)[1].tokenize());
+            var row = param.args.get(1);
+            
+            var startIndex = pUtils.skipWhitespacesInTokenCollection(0, row);
+            
+            if (startIndex >= row.length())
+                throw new ParserError("Could not set matrix row at index. Expected tuple, given: Empty").init(startIndex > 0 ? row.get(startIndex-1) : param.param);
+
+            if (!(row.get(startIndex) instanceof Tuple))
+                throw new ParserError("Cound not set matrix row at index. Expected tuple, given: " + row.get(startIndex).constructor.name).init(row.get(startIndex));
+
+            var tpl = row.get(startIndex)
+            this.parseVectorTuple(tpl);
+
+            if (mode == "row")
+                storedMatrix.setRow(y, tpl);
+            else if (mode == "col")
+                storedMatrix.setCol(y, tpl);
+        }
+
+        /**
+         * Parses a vector tuple by adding metadata to meta entries that represent
+         * certain actions
+         * @param {Tuple} vec the vector tuple to parse
+         */
+        parseVectorTuple(vec) {
+            for (var i = 0; i < vec.length(); i++) {
+                const [annotation, entry] = vec.getAnnotated(i);
+
+                // TODO: This check never holds as there is no annotation parsed if empty after
+                if (annotation != null && annotation.data == "esc")
+                    continue;
+
+                if (this.checkForEmpty(entry))
+                    entry.getMeta()["m.vec.skip"] = true;
+            }
+        }
+
+        /**
+         * Checks if the given token collection is empty or only contains whitespaces
+         * @param {TokenCollection} col 
+         * @returns {boolean} if the token collection is empty
+         */
+        checkForEmpty(col) {
+            for (var i = 0; i < col.length(); i++) {
+                if (col.get(i) instanceof Token && Tokenizer.isTokenWhitespaceOrComment(col.get(i)))
+                    continue;
+                return false;
+            }
+            return true;
         }
     }
 
@@ -392,7 +540,29 @@ module.exports = function(env) {
      */
     class StoredMatrix {
         constructor(data) {
+            if (data == undefined)
+                return;
+
+            // Check if the matrix size is well defined
+            // Each row should have the same number of entries
+            if (data.length == 0)
+                throw new ParserError("Cannot create an empty StoredMatrix!");
+            
             this.data = data;
+            this.sizeY = this.data.length;
+            this.sizeX = this.data[0].length;
+
+            for (var i = 1; i < this.sizeY; i++)
+                if (this.data[i].length != this.sizeX)
+                    throw new ParserError("The size of the matrix is inconsistent. Expected " + this.sizeX + ", given: " + this.data[i].length).init(this.data[i].length > 0 ? this.data[i][this.data[i].length-1] : null);
+        }
+
+        /**
+         * 
+         * @returns the size of the matrix as an array of length 2
+         */
+        size() {
+            return [this.sizeX, this.sizeY];
         }
 
         /**
@@ -405,47 +575,117 @@ module.exports = function(env) {
 
             for (var row of this.data) {
                 var parsedRow = [];
-                for (var element of row) {
-                    var flattened = this.#unwrapAndFlattenTree(element);
-                    if (flattened.length == 1)
-                        flattened[0].unwrap();
-                    parsedRow.push(flattened.join(""));
-                }
+                for (var element of row)
+                    parsedRow.push(element.tokenize().join(""));
+
                 parsedComponents.push(parsedRow.join("&"));
             }
 
             return "\\begin{" + mmode + "}" + parsedComponents.join("\\\\") + "\\end{" + mmode + "}";
         }
 
-        empty(dimX, dimY) {
+        /**
+         * Creates an empty array of the specified size
+         * @param {int} rows the number of columns
+         * @param {int} cols the number of rows
+         */
+        empty(rows, cols) {
             this.data = [];
-            for (var i = 0; i < dimY; i++) {
+            this.sizeX = cols;
+            this.sizeY = rows;
+            for (var i = 0; i < rows; i++) {
                 var row = [];
-                for (var j = 0; j < dimX; j++)
-                    row.push([]);
+                for (var j = 0; j < cols; j++)
+                    row.push(new TokenCollection([]));
                 this.data.push(row);
             }
         }
 
-        set(x, y, data) {
-            this.data[y][x] = data;
+        // TODO: Init error with corresponding token (currently not possible)
+        /**
+         * 
+         * @param {Number} row the row starting at index 1
+         * @param {Number} col the column starting at index 1
+         * @param {Structure} data 
+         */
+        set(row, col, data) {
+            if (col <= 0 || col > this.sizeX)
+                throw new ParserError("Trying to set an invalid column position of the StoredMatrix: " + col + " (must be 1 <= col <= " + this.sizeX + ")");
+
+            if (row <= 0 || row > this.sizeY)
+                throw new ParserError("Trying to set an invalid row position of the StoredMatrix: " + row + " (must be 1 <= row <= " + this.sizeY + ")");
+
+            this.data[row-1][col-1] = data;
         }
 
-        fill(fillToken) {
+        /**
+         * 
+         * @param {int} row the row index
+         * @param {Tuple} vector the vector
+         */
+        setRow(row, vector) {
+            if (row <= 0 || row > this.sizeY)
+                throw new ParserError("Invalid row position! Expected 1 <= row <= " + this.sizeY + ", given: row = " + row);
+            if (vector.length() != this.sizeX)
+                throw new ParserError("Invalid vector size! Expected " + this.sizeX + " entries, given: " + vector.length());
+            
+            for (var i = 0; i < this.sizeX; i++) {
+                if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
+                    this.data[row-1][i] = vector.getAnnotated(i)[1];
+            }
+        }
+
+        /**
+         * 
+         * @param {int} col the column index
+         * @param {Tuple} vector the vector
+         */
+        setCol(col, vector) {
+            if (col <= 0 || col > this.sizeX)
+                throw new ParserError("Invalid x coordinate! Expected 1 <= col <= " + this.sizeX + ", given: col =" + x);
+            if (vector.length() != this.sizeY)
+                throw new ParserError("Invalid vector size! Expected " + this.sizeY + " entries, given: " + vector.length());
+            
+            for (var i = 0; i < this.sizeY; i++) {
+                if (!vector.getAnnotated(i)[1].getProperty("m.vec.skip", false))
+                    this.data[i][col-1] = vector.getAnnotated(i)[1];
+            }
+        }
+
+        /**
+         * Fills all empty entries with the token specified.
+         * Currently only works with empty matrices
+         * @param {Array} fill 
+         */
+        fill(fill) {
             for (var row of this.data) {
                 for (var i = 0; i < row.length; i++) {
-                    if (row[i].length == 0)
-                        row[i] = fillToken;
+                    if (row[i].data.length == 0)
+                        row[i] = new TokenCollection(fill);
                 }
             }
         }
 
-        setblock(x, y, matrix) {
+        /**
+         * Sets a block matrix at the specified coordinates
+         * @param {int} row the row index
+         * @param {int} col the column index
+         * @param {StoredMatrix} matrix the matrix that should be written in
+         */
+        setblock(row, col, matrix) {
             for (var i = 0; i < matrix.data.length; i++) {
                 for (var j = 0; j < matrix.data[i].length; j++) {
-                    this.data[y+i][x+j] = matrix.data[i][j];
+                    this.data[row-1+i][col-1+j] = matrix.data[i][j];
                 }
             }
+        }
+
+        /**
+         * Clones this stored matrix
+         * @returns a cloned instance of this StoredMatrix
+         */
+        clone() {
+            return new StoredMatrix(this.data.map(arr => arr.slice()));
         }
 
         /**

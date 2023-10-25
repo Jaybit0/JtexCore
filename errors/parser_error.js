@@ -12,6 +12,12 @@ class ParserError extends Error {
      * @returns 
      */
     init(token) {
+        try {
+            if (Object.getPrototypeOf(token.constructor).name == "Structure")
+                token = token.tokenize()[0];
+        } catch (e) {
+        }
+        
         this.token = token;
         return this;
     }

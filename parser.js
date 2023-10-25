@@ -25,6 +25,10 @@ class Parser {
         }
     }
 
+    /**
+     * 
+     * @returns a new parser instance using the current environment
+     */
     newInstance() {
         var p = new Parser(this.env, false);
         p.commandDict = this.commandDict;

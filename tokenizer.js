@@ -111,7 +111,7 @@ class Tokenizer {
    *
    * @returns whether the given Token is a Whitespace, Comment or Block_Comment
    */
-  isTokenWhitespaceOrComment(token) {
+  static isTokenWhitespaceOrComment(token) {
     return (
       token.id == Tokens.WHITESPACE ||
       token.id == Tokens.COMMENT ||
