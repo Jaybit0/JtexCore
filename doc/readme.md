@@ -2,9 +2,20 @@
 
 The Jtex-converter is a javascript converter to enhance the workflow of writing LaTeX-code. While you are able to write standard LaTeX-code, the converter is able to convert high-level syntax elements to valid LaTeX-code.
 
-## Headers
+# Commands
 
-### Use
+Jtex-commands always start with the prefix `--`. If given command doesn't exist, the command name will be interpreted as the name itself. Thus, you are able to escape any chars like keywords (TODO).
+
+Here, we will provide a list of basic commands provided by the converter:
+
+| Command | Description                                                                                   | Example   |
+| ------- | --------------------------------------------------------------------------------------------- | --------- |
+| `--\s`  | Starts the [inline math-mode](#inline-math-mode) and is indicated by any whitespace character | `-- 1/2;` |
+| `--m`   | Starts the [Block-math-mode](#block-math-mode)                                                | `--m{1/2}`|
+| `--math`   | Starts the [Block-math-mode](#block-math-mode)                                                | `--math{1/2}`|
+| `--use`   | [Imports a LaTeX package](#use)                                              | `--use amsmath`|
+| `--js`   | Write javascript code                                            | `--js{write("test");}`|
+## Use
 
 With the use-header, you are able to easily import LaTeX packages. Thus, the expression
 
@@ -16,32 +27,15 @@ With the use-header, you are able to easily import LaTeX packages. Thus, the exp
 can also be written as
 
 ```
-use amsmath, amssymb
+--use amsmath, amssymb
 ```
 
 or
 
 ```
-use amsmath
-use amssymb
+--use amsmath
+--use amssymb
 ```
-
-Note that this header is only recognized if it is the first element in the document. However, you are able to write comments that will be transferred to the output LaTeX-document.
-
-## Body
-
-The body contains the content that should be converted to LaTeX-code. You are able to utilize any Syntax elements recognized in LaTeX. Additionally, you are able to write [Jtex-commands](#commands).
-
-## Commands
-
-Jtex-commands always start with the prefix `--`. If given command doesn't exist, the command name will be interpreted as the name itself. Thus, you are able to escape any chars like keywords (TODO).
-
-Here, we will provide a list of basic commands provided by the converter:
-
-| Command | Description                                                                                   | Example   |
-| ------- | --------------------------------------------------------------------------------------------- | --------- |
-| `--\s`  | Starts the [inline math-mode](#inline-math-mode) and is indicated by any whitespace character | `-- 1/2;` |
-| `--m`   | Starts the [Block-math-mode](#block-math-mode)                                                | `--m{1/2}`|
 
 ## Math mode
 
@@ -118,6 +112,20 @@ Notice, that you should use parentheses and not curly brackets like in normal La
 ## Matrix
 
 You can easily create matrices using matrix command `--mat` or `--matrix` in [math mode](#math-mode).
+
+### Matrix types
+
+Instead of the command `--mat`, you can use other matrix types that are mapped to different command names.
+
+| Command | Description   | Output          |
+| -------- | -----------  | --------------- |
+| `--mat`      | Matrix with round brackets   | `\begin{pmatrix}...` |
+| `--pmat`      | Matrix with round brackets  | `\begin{pmatrix}...`     |
+| `--bmat`      | Matrix with squared brackets | `\begin{bmatrix}...`     |
+| `--plmat`     | Matrix without any brackets    | `\begin{matrix}...`  |
+| `--Bmat`     | Matrix with curly brackets    | `\begin{Bmatrix}...`  |
+| `--vmat`     | Matrix with pipe brackets    | `\begin{vmatrix}...`  |
+| `--Vmat`     | Matrix with double pipe (norm) brackets    | `\begin{Vmatrix}...`  |
 
 ### Explicit matrix definition
 
@@ -221,14 +229,17 @@ When setting a row or column, you can also leave entries empty. This results in 
 | `recall`      | [Recalls a matrix](#storing-recalling-and-hiding-a-matrix)     | `*.recall(my_matrix)`       |
 | `hide`      | [Hides a matrix](#storing-recalling-and-hiding-a-matrix)    | `*.hide()`   |
 
-## Comments
+## Javascript
+This section will be implemented in future.
+
+# Comments
 
 Comments in a single line can be used identical to normal LaTeX with the character `%`. 
 
 In contrast to LaTeX, one may also use block comments, which can span over multiple lines. Here, `/*` marks the beginning of a block comment and `*/` marks the end. 
 When compiling to LaTeX Code, these block comments will be compiled to multiple single-line comments in LaTeX, i. e. there will be placed a `%` in front of every line of the block comment.
 
-## Known Bugs
+# Known Bugs
 
 When using parentheses in math mode without any operator, JTex will automatically place `\left` and `\right` (see [Math mode](#math-mode)). This creates a problem, when `\left` and `\right` were already placed by the user, 
 because it leads to a doubling of operators in the LaTeX file, which throws a compilation error. It is therefore necessary, to not use these LaTeX operators on round parentheses in JTex math mode. In future versions, it is planned to 
