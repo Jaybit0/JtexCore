@@ -17,7 +17,7 @@ Before you begin the installation process, ensure that MikTex is installed on yo
 
 ## Installation
 
-The installation process varies depending on your operating system.
+The installation process varies depending on your operating system. First, clone the [JtexClient repository](https://github.com/Jaybit0/JtexClient).
 
 ### For Windows:
 1. Navigate to the directory containing the `setup.bat` file in the command prompt.
