@@ -34,7 +34,7 @@ The body contains the content that should be converted to LaTeX-code. You are ab
 
 ## Commands
 
-Jtex-commands always start with the prefix `--`. If given command doesn't exist, the command name will be interpreted as the name itself. Thus, you are able to escape any chars like keywords (TODO).
+Jtex-commands always start with the prefix `--`. If given command doesn't exist, the command name will be interpreted as the name itself. Thus, you are able to escape any chars like keywords.
 
 Here, we will provide a list of basic commands provided by the converter:
 
