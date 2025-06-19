@@ -31,7 +31,7 @@ The installation process varies depending on your operating system. First, clone
 
 ## Usage
 
-After installation, you can run JTeX by typing `jtex [help]` in the terminal or command prompt.
+After installation, you can run JTeX by typing `jtex [help]` in the terminal or command prompt. For information about our syntax, please read the [docs](docs/readme.md).
 
 ## Contributing
 
